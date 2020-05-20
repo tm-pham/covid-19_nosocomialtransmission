@@ -25,7 +25,7 @@ create.data.template <- function(N,S,E,I_A,I_P,I_S,R,EE=0,t){
   
   wdata[2:nrow(wdata),-1] <- wdata[1,-1]
   
-  ddata <- as.data.frame(cbind(subject=1:N,inf_time=rep(0,N)))
+  ddata <- as.data.frame(cbind(subject=1:N,symptom_time=rep(0,N), inf_time=rep(0,N)))
   
   return(list(data=ddata,wdata=wdata))
 }
