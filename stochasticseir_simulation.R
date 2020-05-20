@@ -2,13 +2,12 @@
 # Simulated Data 
 # =================================================================== #
 # Discrete time stochastic SEIR model
-# Note: 
-# Infection of HCWs from community is still missing
 
 # Necessary packages
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+
 # File paths
 setwd("~/covid-19/nosocomialtransmission/stochasticepidemicmodel/stan/")
 source("stochasticseir_functions.R")
