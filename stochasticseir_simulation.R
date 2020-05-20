@@ -163,7 +163,6 @@ for(i in 1:t){
                              size=S_p)
   # Update wdata (change respective entries to 'E")
   ind_new_exposed_pat <- ind_susc_pat[min(1,new_exposed_pat):min(new_exposed_pat,S_p)]
-  # ind_new_exposed_pat <- ind_susc_pat[sample(length(ind_susc_pat), new_exposed_pat)]
   pat_wdata[(i+1):t,ind_new_exposed_pat] <- 'E'
   pat_data[ind_new_exposed_pat,3] <- i+1 # Time of infection
   
@@ -177,12 +176,6 @@ for(i in 1:t){
     ind_start <- length(ind_new_presymptomatic_pat)+1
     ind_new_asymptomatic_pat <- ind_exp_pat[ind_start:(ind_start+min(new_asymptomatic_pat,E_p))]
   }
-  # len_exp_pat_s <- floor((1-pA)*length(ind_exp_pat))
-  # len_exp_pat_a <- ceiling(pA*length(ind_exp_pat))
-  # ind_exp_pat_s <- ind_exp_pat[min(1,len_exp_pat_s):len_exp_pat_s]
-  # ind_exp_pat_a <- setdiff(ind_exp_pat,ind_exp_pat_s)
-  # ind_new_presymptomatic_pat <- ind_exp_pat_s[sample(len_exp_pat_s, max(new_presymptomatic_pat,0))]
-  # ind_new_asymptomatic_pat <- ind_exp_pat_a[sample(len_exp_pat_a, max(new_asymptomatic_pat,0))]
   pat_wdata[(i+1):t,ind_new_presymptomatic_pat] <- 'I_P'
   pat_data[ind_new_presymptomatic_pat,2] <- i+1 # Time of infectiousness 
   pat_wdata[(i+1):t,ind_new_asymptomatic_pat] <- 'I_A'
@@ -192,7 +185,6 @@ for(i in 1:t){
   # Transition from presymptomatic to symptomatic patients
   new_symptomatic_pat <- sum(rbinom(I_pP, 1, 1-exp(-alpha_2)))
   ind_new_presymptomatic_pat <- ind_presymptomatic_pat[min(1,new_symptomatic_pat):min(new_symptomatic_pat,I_pP)]
-  # ind_new_presymptomatic_pat <- ind_presymptomatic_pat[sample(length(ind_presymptomatic_pat), max(new_symptomatic_pat,0))]
   pat_wdata[(i+1):t,ind_new_presymptomatic_pat] <- 'I_S'
   
   print("Symptomatic and asymptomatic to recovered.")
@@ -201,9 +193,6 @@ for(i in 1:t){
   new_recovered_pat_s <- sum(rbinom(I_pS, 1, 1-exp(-gamma_S)))
   ind_new_recovered_pat_a <- ind_asymptomatic_pat[min(1,new_recovered_pat_a):min(new_recovered_pat_a,I_pA)]
   ind_new_recovered_pat_s <- ind_symptomatic_pat[min(1,new_recovered_pat_s):min(new_recovered_pat_s,I_pS)]
-  # ind_new_recovered_pat_a <- ind_asymptomatic_pat[sample(length(ind_asymptomatic_pat),max(new_recovered_pat_a,0))]
-  # ind_new_recovered_pat_s <- ind_symptomatic_pat[sample(length(ind_symptomatic_pat),max(new_recovered_pat_s,0))]
-  # Recovered patients are discharged and immediately replaced by susceptibles
   pat_wdata[(i+1):t,ind_new_recovered_pat_a] <- 'S'
   pat_wdata[(i+1):t,ind_new_recovered_pat_s] <- 'S'
 
@@ -217,7 +206,6 @@ for(i in 1:t){
                              size=S_hcw)
   # Update wdata
   ind_new_exposed_hcw <- ind_susc_hcw[min(1,new_exposed_hcw):min(new_exposed_hcw,S_hcw)]
-  # ind_new_exposed_hcw <- ind_susc_hcw[sample(length(ind_susc_hcw), max(new_exposed_hcw,0))]
   hcw_wdata[(i+1):t,ind_new_exposed_hcw] <- 'E'
   hcw_data[ind_new_exposed_hcw,3] <- i+1 # Time of infection
   
@@ -238,7 +226,7 @@ for(i in 1:t){
   # ind_exp_hcw_a <- setdiff(ind_exp_hcw,ind_exp_hcw_s)
   # ind_new_presymptomatic_hcw <- ind_exp_hcw_s[sample(len_exp_hcw_s, max(new_presymptomatic_hcw,0))]
   # ind_new_asymptomatic_hcw <- ind_exp_hcw_a[sample(len_exp_hcw_a, max(new_asymptomatic_hcw,0))]
-  # hcw_wdata[(i+1):t,ind_new_presymptomatic_hcw] <- 'I_P'
+  hcw_wdata[(i+1):t,ind_new_presymptomatic_hcw] <- 'I_P'
   hcw_data[ind_new_presymptomatic_hcw,2] <- i+1 # Time of infectiousness 
   hcw_wdata[(i+1):t,ind_new_asymptomatic_hcw] <- 'I_A'
   hcw_data[ind_new_asymptomatic_hcw,2] <- i+1 # Time of infectiousness
