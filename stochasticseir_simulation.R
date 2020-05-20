@@ -242,7 +242,7 @@ data_symp_pat_per_day <- as.data.frame(cbind(time=1:t,I_S=no_symp_pat_per_day))
 ggplot(data_symp_pat_per_day, aes(x=time,y=I_S))+
   geom_point() + 
   theme_bw() + 
-  ylab("Number of sympatomatic patients")
+  ylab("Number of symptomatic patients")
 
 # Plot detected infected HCWs
 no_symp_hcw_per_day <- apply(hcw_wdata[,-1],1,function(x) sum(as.numeric(x=='I_S')))
