@@ -19,7 +19,7 @@ t <- 30
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
 gamma_S <- 1/9  # recovery rate for symptomatic infected 
-alpha_1 <- 1/4    # 1/duration of latent period
+alpha_1 <- 1/4  # 1/duration of latent period
 alpha_2 <- 1/2
 pA <- 0.4       # proportion of asymptomatics
 f <- 0.5        # rate at which symptomatic covid cases arrive at the hospital
@@ -31,14 +31,13 @@ x  <- seq(1,max_gen,by=1)
 gen_shape <- 2.826; gen_scale <- 5.665
 R <- 2
 beta <- R*gen.time(x,shape=gen_shape,scale=gen_scale)
-
-# Contact rates
+# Contact rates per day
 c_pat_pat <- 5
 c_pat_hcw <- 5
 c_hcw_hcw <- 5
 c_hcw_pat <- 20
 
-# Dispersion parameter for beta-binomial distribution
+# Dispersion parameter for beta-binomial distribution (infection process)
 pDshape=1; pDrate=1
 pDis <- rgamma(1,shape=pDshape,rate=pDrate)
 
@@ -85,6 +84,7 @@ for(i in 1:t){
     pat_wdata[i,ind_free_beds[1:min(new_covid_arrivals,num_free_beds)]] <- 'I_S'
   }
   
+  # Current state
   S_p <- sum(as.numeric(pat_wdata[i,]=='S',T)) 
   E_p <- sum(as.numeric(pat_wdata[i,]=='E',T))
   I_pP <- sum(as.numeric(pat_wdata[i,]=='I_P',T))
@@ -126,20 +126,26 @@ for(i in 1:t){
   mat_past_inf_hcw[1:length(ind_hcw),] <- apply(hcw_wdata[ind_hcw,-1], 1, function(x) as.numeric((x=='I_A'))+as.numeric(x=='I_P'))
   hcw_past_inf <- unlist(apply(mat_past_inf_hcw, 1, sum))
   
-  
-  # Force of infection by infected patients
+  # ============================ #
+  # Force of infection
+  # ============================ #
+  # Infectiousness from infected patients
   beta_by_pat <- as.numeric(pat_past_inf%*%beta)/N_p
-  # N_p = S_p + E_p + I_p (without recovered patients)
-  # Force of infection by infected HCW
+  # Infectiousness from infected HCW
   beta_by_hcw <- as.numeric(hcw_past_inf%*%beta)/N_hcw
-  foi <- c_pat_pat*beta_by_pat + c_pat_hcw*beta_by_hcw
+  
+  # Force of infection experienced by susceptible patients
+  foi_pat <- c_pat_pat*beta_by_pat + c_pat_hcw*beta_by_hcw
+  prob_infected_pat <- 1-exp(-foi_pat)
+  # Force of infection experienced by HCWs
+  foi_hcw <- c_hcw_pat*beta_by_pat + c_hcw_hcw*beta_by_hcw
+  prob_infected_hcw <- 1-exp(-foi_hcw)
   
   # ============================ #
   # TRANSITIONS FOR PATIENTS
   # ============================ #
   # Newly exposed (latent) patients
   print("Infecting patients.")
-  prob_infected_pat <- 1-exp(-foi)
   new_exposed_pat <- rbbinom(1,prob=prob_infected_pat,
                              k=pDis,
                              size=S_p)
@@ -184,8 +190,6 @@ for(i in 1:t){
   # ============================ #
   # Newly exposed (latent) HCWs
   print("Infecting HCWs.")
-  foi <- c_hcw_pat*beta_by_pat + c_hcw_hcw*beta_by_hcw
-  prob_infected_hcw <- 1-exp(-foi)
   new_exposed_hcw <- rbbinom(1,prob=prob_infected_pat,
                              k=pDis,
                              size=S_hcw)
