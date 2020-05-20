@@ -87,31 +87,33 @@ for(i in 1:t){
   }
   
   # Current state
-  S_p <- sum(as.numeric(pat_wdata[i,]=='S',T)) 
-  E_p <- sum(as.numeric(pat_wdata[i,]=='E',T))
-  I_pP <- sum(as.numeric(pat_wdata[i,]=='I_P',T))
-  I_pS <- sum(as.numeric(pat_wdata[i,]=='I_S',T))
-  I_pA <- sum(as.numeric(pat_wdata[i,]=='I_A',T))
-  R_p <- sum(as.numeric(pat_wdata[i,]=='R',T))
-  
   ind_susc_pat <- which(pat_wdata[i,]=='S')
   ind_exp_pat <- which(pat_wdata[i,]=='E')
   ind_presymptomatic_pat <- which(pat_wdata[i,]=='I_P')
   ind_symptomatic_pat <- which(pat_wdata[i,]=='I_S')
   ind_asymptomatic_pat <- which(pat_wdata[i,]=='I_A')
   
-  S_hcw <- sum(as.numeric(hcw_wdata[i,]=='S',T)) 
-  E_hcw <- sum(as.numeric(hcw_wdata[i,]=='E',T))
-  I_hcwP <- sum(as.numeric(hcw_wdata[i,]=='I_P',T))
-  I_hcwS <- sum(as.numeric(hcw_wdata[i,]=='I_S',T))
-  I_hcwA <- sum(as.numeric(hcw_wdata[i,]=='I_A',T))
-  R_hcw <- sum(as.numeric(hcw_wdata[i,]=='R',T))
+  S_p <- length(ind_susc_pat)
+  E_p <- length(ind_exp_pat)
+  I_pP <- length(ind_presymptomatic_pat)
+  I_pS <- length(ind_symptomatic_pat)
+  I_pA <- length(ind_asymptomatic_pat)
+  R_p <- sum(as.numeric(pat_wdata[i,]=='R',T))
   
   ind_susc_hcw <- which(hcw_wdata[i,]=='S')
   ind_exp_hcw <- which(hcw_wdata[i,]=='E')
   ind_presymptomatic_hcw <- which(hcw_wdata[i,]=='I_P')
   ind_symptomatic_hcw <- which(hcw_wdata[i,]=='I_S')
   ind_asymptomatic_hcw <- which(hcw_wdata[i,]=='I_A')
+  
+  S_hcw <- length(ind_susc_hcw)
+  E_hcw <- length(ind_exp_hcw)
+  I_hcwP <- length(ind_presymptomatic_hcw)
+  I_hcwS <- length(ind_symptomatic_hcw)
+  I_hcwA <- length(ind_asymptomatic_hcw)
+  R_hcw <- sum(as.numeric(hcw_wdata[i,]=='R',T))
+  
+
   
   # Number of patients participating in the contact process 
   N_p <- S_p + E_p + I_pP + I_pA
