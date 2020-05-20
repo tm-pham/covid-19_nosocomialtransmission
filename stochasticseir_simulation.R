@@ -153,7 +153,7 @@ for(i in 1:t){
   new_exposed_pat <- rbbinom(1,prob=prob_infected_pat,
                              k=pDis,
                              size=S_p)
-  # Update wdata
+  # Update wdata (change respective entries to 'E")
   ind_new_exposed_pat <- ind_susc_pat[sample(length(ind_susc_pat), new_exposed_pat)]
   pat_wdata[(i+1):t,ind_new_exposed_pat] <- 'E'
   pat_data[ind_new_exposed_pat,3] <- i+1
@@ -162,7 +162,7 @@ for(i in 1:t){
   # Transition from exposed to pre/asymptomatic patients
   new_presymptomatic_pat <- sum(rbinom(floor((1-pA)*E_p), 1, alpha_1))
   new_asymptomatic_pat <- sum(rbinom(ceiling(pA*E_p), 1, alpha_1))
-  # Update wdata
+  # Update wdata (change respective entries to 'I_A', 'I_P')
   len_exp_pat_s <- floor((1-pA)*length(ind_exp_pat))
   len_exp_pat_a <- ceiling(pA*length(ind_exp_pat))
   ind_exp_pat_s <- ind_exp_pat[min(1,len_exp_pat_s):len_exp_pat_s]

@@ -1,7 +1,15 @@
 # =================================================================== #
 # Functions
 # =================================================================== #
-
+# N = total number
+# S = Susceptible
+# E = Exposed
+# I_A = asymptomatic
+# I_P = pre-symptomatic
+# I_S = symptomatic
+# R = Recovered
+# EE = empty beds
+# t = time frame
 create.data.template <- function(N,S,E,I_A,I_P,I_S,R,EE=0,t){
   # data frame to store results
   data <- expand.grid(subject = 1:N, time = 1:t) %>% 
