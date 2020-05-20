@@ -2,6 +2,7 @@
 # Simulated Data 
 # =================================================================== #
 # Discrete time stochastic SEIR model
+# Note: Infection of HCWs from community is still missing
 
 # Necessary packages
 library(dplyr)
@@ -14,7 +15,7 @@ source("stochasticseir_functions.R")
 
 set.seed(12345)
 # Time frame
-t <- 20
+t <- 60
 
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
@@ -114,7 +115,6 @@ for(i in 1:t){
   R_hcw <- sum(as.numeric(hcw_wdata[i,]=='R',T))
   
 
-  
   # Number of patients participating in the contact process 
   N_p <- S_p + E_p + I_pP + I_pA
   # Number of HCWs participating in the contact process 
@@ -122,22 +122,18 @@ for(i in 1:t){
        
   # How many of the patients were infected 1,2,..,14 days ago
   ind <- max(i-max_gen+1,1):i
-  # mat_past_inf_pat[1:length(ind),] <- as.vector(t(apply(pat_wdata[ind,-1], 1, function(x) as.numeric((x=='I_A'))+as.numeric(x=='I_P'))))
-  # pat_past_inf <- unlist(apply(mat_past_inf_pat, 1, sum))
   pat_past_inf <- c(sapply(ind, function(x) length(which(pat_data[,3]==x))),rep(0,max_gen-length(ind)))
   
   # How many of the HCWs were infected 1,2,..,14 days ago
-  # mat_past_inf_hcw[1:length(ind),] <- apply(hcw_wdata[ind,-1], 1, function(x) as.numeric((x=='I_A'))+as.numeric(x=='I_P'))
-  # hcw_past_inf <- unlist(apply(mat_past_inf_hcw, 1, sum))
   hcw_past_inf <- c(sapply(ind, function(x) length(which(hcw_data[,3]==x))),rep(0,max_gen-length(ind)))
   
   
   # ============================ #
   # Force of infection
   # ============================ #
-  # Infectiousness from infected patients
+  # Infectiousness from infected patients who were infected 1,2,...,max_gen days ago
   beta_by_pat <- as.numeric(pat_past_inf%*%beta)/N_p
-  # Infectiousness from infected HCW
+  # Infectiousness from infected HCW who were infected 1,2,...,max_gen days ago
   beta_by_hcw <- as.numeric(hcw_past_inf%*%beta)/N_hcw
   
   # Force of infection experienced by susceptible patients
@@ -158,7 +154,7 @@ for(i in 1:t){
   # Update wdata (change respective entries to 'E")
   ind_new_exposed_pat <- ind_susc_pat[sample(length(ind_susc_pat), new_exposed_pat)]
   pat_wdata[(i+1):t,ind_new_exposed_pat] <- 'E'
-  pat_data[ind_new_exposed_pat,3] <- i+1
+  pat_data[ind_new_exposed_pat,3] <- i+1 # Time of infection
   
   print("Exposed to presymptomatics and asymptomatics.")
   # Transition from exposed to pre/asymptomatic patients
@@ -203,7 +199,7 @@ for(i in 1:t){
   # Update wdata
   ind_new_exposed_hcw <- ind_susc_hcw[sample(length(ind_susc_hcw), max(new_exposed_hcw,0))]
   hcw_wdata[(i+1):t,ind_new_exposed_hcw] <- 'E'
-  hcw_data[ind_new_exposed_hcw,3] <- i+1
+  hcw_data[ind_new_exposed_hcw,3] <- i+1 # Time of infection
   
   print("Exposed to presymptomatics and asymptomatics.")
   # Transition from exposed to asymptomatic/presymptomatic HCW
