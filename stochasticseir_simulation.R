@@ -17,7 +17,7 @@ source("stochasticseir_functions.R")
 
 set.seed(12345)
 # Time frame
-t <- 20
+t <- 60
 
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
@@ -128,11 +128,11 @@ for(i in 1:t){
        
   # How many of the patients that are present and infectious were infected 1,2,..,14 days ago
   days <- max(i-max_gen+1,1):i
-  present_pat <- which(pat_wdata[i,]%in%c('I_A','I_P','I_S'))
+  present_pat <- which(pat_wdata[i,]%in%c('E','I_A','I_P','I_S'))
   pat_past_inf <- c(sapply(days, function(x) length(intersect(which(pat_data[,3]==x),present_pat))),rep(0,max_gen-length(days)))
   
   # How many of the HCWs that are present and infectious were infected 1,2,..,14 days ago
-  present_hcw <- which(hcw_wdata[i,]%in%c('I_A','I_P','I_S'))
+  present_hcw <- which(hcw_wdata[i,]%in%c('E','I_A','I_P','I_S'))
   hcw_past_inf <- c(sapply(days, function(x) length(intersect(which(hcw_data[,3]==x),present_hcw))),rep(0,max_gen-length(days)))
   
   
@@ -243,7 +243,9 @@ for(i in 1:t){
 pat_wdata <- pat_wdata[1:t,]
 hcw_wdata <- hcw_wdata[1:t,]
 
+# ================================ #
 # Plot detected infected patients
+# ================================ #
 no_symp_pat_per_day <- apply(pat_wdata[,-1],1,function(x) sum(as.numeric(x=='I_S')))
 data_symp_pat_per_day <- as.data.frame(cbind(time=1:t,I_S=no_symp_pat_per_day))
 
@@ -252,7 +254,9 @@ ggplot(data_symp_pat_per_day, aes(x=time,y=I_S))+
   theme_bw() + 
   ylab("Number of symptomatic patients")
 
+# ================================ #
 # Plot detected infected HCWs
+# ================================ #
 no_symp_hcw_per_day <- apply(hcw_wdata[,-1],1,function(x) sum(as.numeric(x=='I_S')))
 data_symp_hcw_per_day <- as.data.frame(cbind(time=1:t,I_S=no_symp_hcw_per_day))
 
