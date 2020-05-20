@@ -35,7 +35,8 @@ x  <- seq(1,max_gen,by=1)
 gen_shape <- 2.826; gen_scale <- 5.665
 R <- 2
 beta <- R*gen.time(x,shape=gen_shape,scale=gen_scale)
-# Contact rates per day
+# Contact rates/scaling factors of infectiousness per day
+# Necessary because patients and hcw have different contact rates?
 c_pat_pat <- 5  # contact between patients
 c_pat_hcw <- 5  # contact between patient and hcw
 c_hcw_hcw <- 20
