@@ -130,7 +130,7 @@ for(i in 1:t){
        
   # How many of the patients that are present and infectious were infected 1,2,..,14 days ago
   days <- max(i-max_gen+1,1):i
-  present_pat <- which(pat_wdata[i,]%in%c('E','I_A','I_P','I_S'))
+  present_pat <- which(pat_wdata[i,]%in%c('E','I_A','I_P'))
   pat_past_inf <- c(sapply(days, function(x) length(intersect(which(pat_data[,3]==x),present_pat))),rep(0,max_gen-length(days)))
   
   # How many of the HCWs that are present and infectious were infected 1,2,..,14 days ago
@@ -191,6 +191,7 @@ for(i in 1:t){
   # Transition from infectious  to recovered patients
   new_recovered_pat_a <-sum(rbinom(I_pA, 1, 1-exp(-gamma_A)))
   new_recovered_pat_s <- sum(rbinom(I_pS, 1, 1-exp(-gamma_S)))
+  # Update wdata
   ind_new_recovered_pat_a <- ind_asymptomatic_pat[min(1,new_recovered_pat_a):min(new_recovered_pat_a,I_pA)]
   ind_new_recovered_pat_s <- ind_symptomatic_pat[min(1,new_recovered_pat_s):min(new_recovered_pat_s,I_pS)]
   pat_wdata[(i+1):t,ind_new_recovered_pat_a] <- 'S'
@@ -220,12 +221,6 @@ for(i in 1:t){
     ind_start <- length(ind_new_presymptomatic_hcw) + 1
     ind_new_asymptomatic_hcw <- ind_exp_hcw[ind_start:(ind_start+min(new_asymptomatic_hcw,E_hcw))]
   }
-  # len_exp_hcw_s <- floor((1-pA)*length(ind_exp_hcw))
-  # len_exp_hcw_a <- ceiling(pA*length(ind_exp_hcw))
-  # ind_exp_hcw_s <- ind_exp_hcw[min(1,len_exp_hcw_s):len_exp_hcw_s]
-  # ind_exp_hcw_a <- setdiff(ind_exp_hcw,ind_exp_hcw_s)
-  # ind_new_presymptomatic_hcw <- ind_exp_hcw_s[sample(len_exp_hcw_s, max(new_presymptomatic_hcw,0))]
-  # ind_new_asymptomatic_hcw <- ind_exp_hcw_a[sample(len_exp_hcw_a, max(new_asymptomatic_hcw,0))]
   hcw_wdata[(i+1):t,ind_new_presymptomatic_hcw] <- 'I_P'
   hcw_data[ind_new_presymptomatic_hcw,2] <- i+1 # Time of infectiousness 
   hcw_wdata[(i+1):t,ind_new_asymptomatic_hcw] <- 'I_A'
@@ -234,18 +229,17 @@ for(i in 1:t){
   print("Presymptomatic to symptomatic.")
   # Transition from presymptomatic to symptomatic HCW
   new_symptomatic_hcw <- sum(rbinom(I_hcwP, 1, 1-exp(-alpha_2)))
+  # Update wdata
   ind_new_presymptomatic_hcw <- ind_presymptomatic_hcw[min(1,new_symptomatic_hcw):min(new_symptomatic_hcw,I_hcwP)]
-  # ind_new_presymptomatic_hcw <- ind_presymptomatic_hcw[sample(length(ind_presymptomatic_hcw), max(new_symptomatic_hcw,0))]
   hcw_wdata[(i+1):t,ind_new_presymptomatic_hcw] <- 'I_S'
   
   print("Symptomatic and asymptomatic to recovered.")
   # Transition from aasymptomatic/symptomatic to recovered HCW
   new_recovered_hcw_a <- sum(rbinom(I_hcwA, 1, 1-exp(-gamma_A)))
   new_recovered_hcw_s <- sum(rbinom(I_hcwS, 1, 1-exp(-gamma_S)))
+  # Update wdata
   ind_new_recovered_hcw_a <- ind_asymptomatic_hcw[min(1,new_recovered_hcw_a):min(new_recovered_hcw_a,I_hcwA)]
   ind_new_recovered_hcw_s <- ind_symptomatic_hcw[min(1,new_recovered_hcw_s):min(new_recovered_hcw_s,I_hcwS)]
-  # ind_new_recovered_hcw_a <- ind_asymptomatic_hcw[sample(length(ind_asymptomatic_hcw),max(new_recovered_hcw_a,0))]
-  # ind_new_recovered_hcw_s <- ind_symptomatic_hcw[sample(length(ind_symptomatic_hcw),max(new_recovered_hcw_s,0))]
   hcw_wdata[(i+1):t,ind_new_recovered_hcw_a] <- 'R'
   hcw_wdata[(i+1):t,ind_new_recovered_hcw_s] <- 'R'
 }
