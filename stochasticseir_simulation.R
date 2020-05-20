@@ -14,7 +14,7 @@ source("stochasticseir_functions.R")
 
 set.seed(12345)
 # Time frame
-t <- 30
+t <- 60
 
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
@@ -34,7 +34,7 @@ beta <- R*gen.time(x,shape=gen_shape,scale=gen_scale)
 # Contact rates per day
 c_pat_pat <- 5
 c_pat_hcw <- 5
-c_hcw_hcw <- 5
+c_hcw_hcw <- 20
 c_hcw_pat <- 20
 
 # Dispersion parameter for beta-binomial distribution (infection process)
@@ -238,7 +238,8 @@ data_symp_pat_per_day <- as.data.frame(cbind(time=1:t,I_S=no_symp_pat_per_day))
 
 ggplot(data_symp_pat_per_day, aes(x=time,y=I_S))+
   geom_point() + 
-  theme_bw()
+  theme_bw() + 
+  ylab("Number of sympatomatic patients")
 
 # Plot detected infected HCWs
 no_symp_hcw_per_day <- apply(hcw_wdata[,-1],1,function(x) sum(as.numeric(x=='I_S')))
@@ -246,4 +247,5 @@ data_symp_hcw_per_day <- as.data.frame(cbind(time=1:t,I_S=no_symp_hcw_per_day))
 
 ggplot(data_symp_hcw_per_day, aes(x=time,y=I_S))+
   geom_point() + 
-  theme_bw()
+  theme_bw() + 
+  ylab("Number of symptomatic HCWs")
