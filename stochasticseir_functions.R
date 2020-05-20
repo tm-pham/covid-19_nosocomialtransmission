@@ -11,16 +11,17 @@
 # EE = empty beds
 # t = time frame
 create.data.template <- function(N,S,E,I_A,I_P,I_S,R,EE=0,t){
-  # data frame to store results
   data <- expand.grid(subject = 1:N, time = 1:t) %>% 
     tbl_df()
   # 'wide' version of the data frame
   wdata <- data %>% mutate(shedding = NA_character_) %>% 
     spread(subject,shedding) %>% setNames(names(.) %>% make.names) 
-  # keep track of individuals
+  
+  # Intitial values for different compartments
   exposed <- c(rep(1,E),rep(0,N-E)) 
   susceptible <- c(rep(0,E),rep(1,S),rep(0,N-E-S))
-  asymptomatic <- presymptomatic <- symptomatic <- recovered <- rep(0,N)
+  asymptomatic <- presymptomatic <- recovered <- rep(0,N)
+  symptomatic <- c(rep(0,E),rep(0,S),rep(1,I_S),rep(0,N-S-E-I_S))
   nopat <- c(rep(0,N-EE),rep(1,EE))
   
   wdata[1,-1][susceptible ==1] = 'S'
@@ -33,6 +34,7 @@ create.data.template <- function(N,S,E,I_A,I_P,I_S,R,EE=0,t){
   
   wdata[2:nrow(wdata),-1] <- wdata[1,-1]
   
+  # data frame to save symptom onset and infection time
   ddata <- as.data.frame(cbind(subject=1:N,symptom_time=rep(0,N), inf_time=rep(0,N)))
   
   return(list(data=ddata,wdata=wdata))

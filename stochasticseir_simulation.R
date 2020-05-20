@@ -17,7 +17,7 @@ source("stochasticseir_functions.R")
 
 set.seed(12345)
 # Time frame
-t <- 60
+t <- 20
 
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
@@ -42,6 +42,7 @@ c_hcw_hcw <- 20
 c_hcw_pat <- 20
 
 # Dispersion parameter for beta-binomial distribution (infection process)
+# see: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6027774/
 pDshape=1; pDrate=1
 pDis <- rgamma(1,shape=pDshape,rate=pDrate)
 
@@ -58,10 +59,10 @@ pat_dataset <- create.data.template(N_p,S0_p,E0_p,0,0,0,0,EE=ceiling((1-p_b)*N_p
 pat_data <- pat_dataset$data
 pat_wdata <- pat_dataset$wdata
 
-# Store number of exposed (latent) and symptomatic patients 1,2,...,max_gen ago
+# Store number of patients that were infected 1,2,...,max_gen days ago
 pat_past_inf <- c(E0_p,rep(0,max_gen))
-pat_data[1:E0_p,3] <- 1
-# mat_past_inf_pat <- matrix(data=0,ncol=N_p,nrow=max_gen)
+pat_data[1:E0_p,3] <- 1 # Time of infection for first infected individuals (assume=1)
+
 
 # ============================= #
 # HCW population
@@ -73,13 +74,15 @@ hcw_dataset <- create.data.template(N_hcw,S0_hcw,E0_hcw,0,0,0,0,EE=0,t=t)
 hcw_data <- hcw_dataset$data
 hcw_wdata <- hcw_dataset$wdata
 
-# Store number of exposed HCWs 1,2,...,max_gen ago
+# Store number of HCWs infected 1,2,...,max_gen days ago
 # Note that symptomatic HCWs get isolated and are not included here
 hcw_past_inf <- c(E0_hcw,rep(0,max_gen))
-# mat_past_inf_hcw <- matrix(data=0,ncol=N_hcw,nrow=max_gen)
 pat_data[1:E0_hcw,3] <- 1
 
+
+# ============================= #
 # Run through the simulation:
+# ============================= #
 for(i in 1:t){
   print(paste("i=",i))
   # Arrival of symptomatic covid patients
@@ -90,7 +93,7 @@ for(i in 1:t){
     pat_wdata[i,ind_free_beds[1:min(new_covid_arrivals,num_free_beds)]] <- 'I_S'
   }
   
-  # Current state
+  # Current state of individuals
   ind_susc_pat <- which(pat_wdata[i,]=='S')
   ind_exp_pat <- which(pat_wdata[i,]=='E')
   ind_presymptomatic_pat <- which(pat_wdata[i,]=='I_P')
@@ -123,12 +126,14 @@ for(i in 1:t){
   # Number of HCWs participating in the contact process 
   N_hcw <- S_hcw + E_hcw + I_hcwP + I_hcwA + R_hcw
        
-  # How many of the patients were infected 1,2,..,14 days ago
+  # How many of the patients that are present and infectious were infected 1,2,..,14 days ago
   ind <- max(i-max_gen+1,1):i
-  pat_past_inf <- c(sapply(ind, function(x) length(which(pat_data[,3]==x))),rep(0,max_gen-length(ind)))
+  present_pat <- which(pat_wdata[i,]%in%c('I_A','I_P','I_S'))
+  pat_past_inf <- c(sapply(ind, function(x) length(intersect(which(pat_data[,3]==x),present_pat))),rep(0,max_gen-length(ind)))
   
-  # How many of the HCWs were infected 1,2,..,14 days ago
-  hcw_past_inf <- c(sapply(ind, function(x) length(which(hcw_data[,3]==x))),rep(0,max_gen-length(ind)))
+  # How many of the HCWs that are present and infectious were infected 1,2,..,14 days ago
+  present_hcw <- which(hcw_wdata[i,]%in%c('I_A','I_P','I_S'))
+  hcw_past_inf <- c(sapply(ind, function(x) length(intersect(which(hcw_data[,3]==x),present_hcw))),rep(0,max_gen-length(ind)))
   
   
   # ============================ #
