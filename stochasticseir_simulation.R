@@ -2,7 +2,9 @@
 # Simulated Data 
 # =================================================================== #
 # Discrete time stochastic SEIR model
-# Note: Infection of HCWs from community is still missing
+# Note: 
+# Infection of HCWs from community is still missing
+# Death of patients is still missing
 
 # Necessary packages
 library(dplyr)
@@ -19,9 +21,10 @@ t <- 60
 
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
-gamma_S <- 1/9  # recovery rate for symptomatic infected 
+gamma_S <- 1/14  # recovery rate for symptomatic infected 
 alpha_1 <- 1/4  # 1/duration of latent period
-alpha_2 <- 1/2
+alpha_2 <- 1/2  # Rate from presymptomatic to symptomatic
+eta <- 0.0011   # eta=gamma_S*f/(1-f) where f is the case-fatality rate 1.6%
 pA <- 0.4       # proportion of asymptomatics
 f <- 0.5        # rate at which symptomatic covid cases arrive at the hospital
   
