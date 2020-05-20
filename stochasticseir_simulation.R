@@ -4,7 +4,6 @@
 # Discrete time stochastic SEIR model
 # Note: 
 # Infection of HCWs from community is still missing
-# Death of patients is still missing
 
 # Necessary packages
 library(dplyr)
@@ -33,7 +32,7 @@ f <- 0.5        # rate at which symptomatic covid cases arrive at the hospital
 max_gen <- 14
 x  <- seq(1,max_gen,by=1)
 gen_shape <- 2.826; gen_scale <- 5.665
-R <- 0.2 # Maybe different Rs for pat-pat, pat-hcw and hcw-hcw?
+R <- 2 # Maybe different Rs for pat-pat, pat-hcw and hcw-hcw?
 beta <- R*gen.time(x,shape=gen_shape,scale=gen_scale)
 
 # Contact rates/scaling factors of infectiousness per day
@@ -80,6 +79,8 @@ hcw_wdata <- hcw_dataset$wdata
 # Note that symptomatic HCWs get isolated and are not included here
 hcw_past_inf <- c(E0_hcw,rep(0,max_gen))
 pat_data[1:E0_hcw,3] <- 1
+
+dead <- as.data.frame(cbind(time=1:t,dead=rep(0,t)))
 
 
 # ============================= #
@@ -145,17 +146,15 @@ for(i in 1:t){
   beta_by_pat <- as.numeric(pat_past_inf%*%beta)/N_p
   # Infectiousness from infected HCW who were infected 1,2,...,max_gen days ago
   beta_by_hcw <- as.numeric(hcw_past_inf%*%beta)/N_hcw
-  
-  # Force of infection experienced by susceptible patients
-  foi_pat <- c_pat_pat*beta_by_pat + c_pat_hcw*beta_by_hcw
-  prob_infected_pat <- 1-exp(-foi_pat)
-  # Force of infection experienced by HCWs
-  foi_hcw <- c_hcw_pat*beta_by_pat + c_hcw_hcw*beta_by_hcw
-  prob_infected_hcw <- 1-exp(-foi_hcw)
+
   
   # ============================ #
   # TRANSITIONS FOR PATIENTS
   # ============================ #
+  # Force of infection experienced by susceptible patients
+  foi_pat <- c_pat_pat*beta_by_pat + c_pat_hcw*beta_by_hcw
+  prob_infected_pat <- 1-exp(-foi_pat)
+  
   # Newly exposed (latent) patients
   print("Infecting patients.")
   new_exposed_pat <- rbbinom(1,prob=prob_infected_pat,
@@ -174,7 +173,7 @@ for(i in 1:t){
   ind_new_presymptomatic_pat <- ind_exp_pat[min(1,new_presymptomatic_pat):min(new_presymptomatic_pat,E_p)]
   if(length(ind_new_asymptomatic_pat)<length(ind_exp_pat)){
     ind_start <- length(ind_new_presymptomatic_pat)+1
-    ind_new_asymptomatic_pat <- ind_exp_pat[ind_start:(ind_start+min(new_asymptomatic_pat,E_p))]
+    ind_new_asymptomatic_pat <- ind_exp_pat[ind_start:min(ind_start+new_asymptomatic_pat-1,E_p)]
   }
   pat_wdata[(i+1):t,ind_new_presymptomatic_pat] <- 'I_P'
   pat_data[ind_new_presymptomatic_pat,2] <- i+1 # Time of infectiousness 
@@ -196,10 +195,27 @@ for(i in 1:t){
   ind_new_recovered_pat_s <- ind_symptomatic_pat[min(1,new_recovered_pat_s):min(new_recovered_pat_s,I_pS)]
   pat_wdata[(i+1):t,ind_new_recovered_pat_a] <- 'S'
   pat_wdata[(i+1):t,ind_new_recovered_pat_s] <- 'S'
+  
+  if(new_recovered_pat_s<I_pS){
+    print("Symptomatic to dead.")
+    new_dead_pat <- sum(rbinom(I_pS-new_recovered_pat_s, 1, 1-exp(-eta)))
+    if(new_dead_pat>0){
+      ind_start <- new_recovered_pat_s + 1
+      ind_new_dead_pat <- ind_symptomatic_pat[ind_start:min(ind_start+new_dead_pat-1,I_pS)]
+      # Dead patients are immediately replaced by susceptibles
+      pat_wdata[(i+1):t,ind_new_dead_pat] <- 'S'
+      dead[i+1,2] <- length(ind_new_dead_pat) 
+    }
+  }
+
 
   # ============================ #
   # TRANSITIONS FOR HCWS
   # ============================ #
+  # Force of infection experienced by HCWs
+  foi_hcw <- c_hcw_pat*beta_by_pat + c_hcw_hcw*beta_by_hcw + f
+  prob_infected_hcw <- 1-exp(-foi_hcw)
+  
   # Newly exposed (latent) HCWs
   print("Infecting HCWs.")
   new_exposed_hcw <- rbbinom(1,prob=prob_infected_hcw,
@@ -219,7 +235,7 @@ for(i in 1:t){
   ind_new_presymptomatic_hcw <- ind_exp_hcw[min(1,new_presymptomatic_hcw):min(new_presymptomatic_hcw,E_hcw)]
   if(length(ind_new_presymptomatic_hcw)<E_hcw){
     ind_start <- length(ind_new_presymptomatic_hcw) + 1
-    ind_new_asymptomatic_hcw <- ind_exp_hcw[ind_start:(ind_start+min(new_asymptomatic_hcw,E_hcw))]
+    ind_new_asymptomatic_hcw <- ind_exp_hcw[ind_start:min(ind_start+new_asymptomatic_hcw-1,E_hcw)]
   }
   hcw_wdata[(i+1):t,ind_new_presymptomatic_hcw] <- 'I_P'
   hcw_data[ind_new_presymptomatic_hcw,2] <- i+1 # Time of infectiousness 
@@ -267,3 +283,11 @@ ggplot(data_symp_hcw_per_day, aes(x=time,y=I_S))+
   geom_point() + 
   theme_bw() + 
   ylab("Number of symptomatic HCWs")
+
+# ================================ #
+# Plot detected dead patients
+# ================================ #
+ggplot(dead,aes(x=time,y=dead)) + 
+  geom_point() + 
+  theme_bw() + 
+  ylab("Number of dead patients")
