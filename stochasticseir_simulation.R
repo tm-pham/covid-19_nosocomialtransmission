@@ -2,6 +2,9 @@
 # Simulated Data 
 # =================================================================== #
 # Discrete time stochastic SEIR model
+# Note: 
+# Only a subset of symptomatic covid patients might be observed.
+# (to be added later)
 
 # Necessary packages
 library(dplyr)
