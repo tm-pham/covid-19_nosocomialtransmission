@@ -136,11 +136,11 @@ for(i in 1:t){
        
   # How many of the patients that are present and infectious were infected 1,2,..,14 days ago
   days <- max(i-max_gen+1,1):i
-  present_pat <- which(pat_wdata[i,]%in%c('E','I_A','I_P'))
+  present_pat <- which(pat_wdata[i,]%in%c('I_A','I_P'))
   pat_past_inf <- c(sapply(days, function(x) length(intersect(which(pat_data[,3]==x),present_pat))),rep(0,max_gen-length(days)))
   
   # How many of the HCWs that are present and infectious were infected 1,2,..,14 days ago
-  present_hcw <- which(hcw_wdata[i,]%in%c('E','I_A','I_P','I_S'))
+  present_hcw <- which(hcw_wdata[i,]%in%c('I_A','I_P','I_S'))
   hcw_past_inf <- c(sapply(days, function(x) length(intersect(which(hcw_data[,3]==x),present_hcw))),rep(0,max_gen-length(days)))
   
   
