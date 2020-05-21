@@ -6,7 +6,7 @@
 # Only a subset of symptomatic covid patients might be observed.
 # (to be added later)
 # Readmissions of patients that left hospital without symptoms is still missing
-# Admission and discharge of non-symptomatic patients 
+# Admission and discharge of non-symptomatic patients not included yet (do we have data?)
 
 # Necessary packages
 library(dplyr)
