@@ -5,6 +5,8 @@
 # Note: 
 # Only a subset of symptomatic covid patients might be observed.
 # (to be added later)
+# Readmissions of patients that left hospital without symptoms is still missing
+# Admission and discharge of non-symptomatic patients 
 
 # Necessary packages
 library(dplyr)
@@ -20,9 +22,10 @@ set.seed(12345)
 # Time frame
 t <- 60
 
+
 # Epidemiological parameters
 gamma_A <- 1/7  # recovery rate for asymptomatic infected
-gamma_S <- 1/14  # recovery rate for symptomatic infected 
+gamma_S <- 1/14 # recovery rate for symptomatic infected 
 alpha_1 <- 1/4  # 1/duration of latent period
 alpha_2 <- 1/2  # Rate from presymptomatic to symptomatic
 eta <- 0.0011   # eta=gamma_S*f/(1-f) where f is the case-fatality rate 1.6%
@@ -127,7 +130,7 @@ for(i in 1:t){
   
 
   # Number of patients participating in the contact process 
-  N_p <- S_p + E_p + I_pP + I_pA
+  N_p <- S_p + E_p + I_pP + I_pA + I_pS
   # Number of HCWs participating in the contact process 
   N_hcw <- S_hcw + E_hcw + I_hcwP + I_hcwA + R_hcw
        
