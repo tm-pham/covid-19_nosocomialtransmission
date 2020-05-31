@@ -10,7 +10,7 @@ data {
   int<lower=0, upper=N> S_hcw[T];     // Number of susceptible HCWs at time t
 
   real delta[T];                      // Proportion of nosocomial infections, infected s days ago who are discharged, isolated or died
-  real gamma[T];                      // Proportion of nosocomial infections, infected s days ago who recover (and thus are immune)
+  real gamma[T];                      // Proportion of nosocomial HCW infections, infected s days ago who recover (and thus are immune)
   
   real gen_shape;                     // shape parameter for generation time distribution (Feretti et al)
   real gen_scale;                     // scale parameter for generation time distribution (Feretti et al)
