@@ -21,7 +21,8 @@ data {
   //real c_p_hcw;                     // Contact rate of patients with HCWs
   
   // Transmission parameters (assume to be known in simulation)
-  real f_hcw_p;                       // scaling parameter for infectivity from patient to HCW
+  real f_hcw_p;                       // scaling parameter for infectivity from known infected patient to HCW
+  real f_hcw_pp;                       // scaling parameter for infectivity from unknown infected patient to HCW
   real f_hcw_hcw;                     // HCW to HCW
   real f_p_p;                         // Known infected patients to patient
   real f_p_pp;                        // Unkown infected patients to patient
@@ -88,7 +89,7 @@ generated quantities {
       inf_p[t] += gen_time[s]*I_pU[s,t-1];
     }
     // Probability of infection for HCWs at time t
-    p_hcw[t] = f_hcw_hcw*inf_hcw[t] + f_hcw_p*inf_p[t] + f_hcw_p*I_p[t];
+    p_hcw[t] = f_hcw_hcw*inf_hcw[t] + f_hcw_pp*inf_p[t] + f_hcw_p*I_p[t];
     // Probability of infection for patients at time t
     p_p[t] = f_p_hcw*inf_hcw[t] + f_p_pp*inf_p[t] + f_p_p*I_p[t];
     
