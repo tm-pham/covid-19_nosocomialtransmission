@@ -21,12 +21,12 @@ data {
   //real c_p_hcw;                     // Contact rate of patients with HCWs
   
   // Transmission parameters (assume to be known in simulation)
-  real f_hcw_p;                       // scaling parameter for infectivity from known infected patient to HCW
-  real f_hcw_pp;                       // scaling parameter for infectivity from unknown infected patient to HCW
+  real f_hcw_p;                       // known infected patient to HCW
+  real f_hcw_pp;                      // unknown infected patient to HCW
   real f_hcw_hcw;                     // HCW to HCW
-  real f_p_p;                         // Known infected patients to patient
-  real f_p_pp;                        // Unkown infected patients to patient
-  real f_p_hcw;                       // HCW to patient
+  real f_p_p;                         // Known infected patient to patient
+  real f_p_pp;                        // Unkown infected patient to patient
+  real f_p_hcw;                       // HCW to susceptible patient
 }
 
 transformed data { 
@@ -55,7 +55,7 @@ generated quantities {
   // Usually observed but here for simulation?
   real II_hcw[T,T];    // (real) Number of infected HCWs at time t who were infected (s-1) days ago and are still working
   int I_hcw[T,T];      // (int) Number of infected HCWs at time t who were infected (s-1) days ago and are still working
-  int R_hcw[T];     // Number of immune HCWs at time t
+  int R_hcw[T];        // Number of immune HCWs at time t
 
   real ww[T];         // (real) Number of (immune) HCWs returning to work at time t
   int w[T];           // (int) Number of (immune) HCWs returning to work at time t
@@ -100,11 +100,11 @@ generated quantities {
   
     // Recoveries, discharges, isolations, deaths
     for(s in 2:t){
-      // Number of infected HCWs at time t who got infected s-2 days ago (note that stan starts counting at 1)
+      // Number of infected HCWs at time t who got infected s-1 days ago (note that stan starts counting at 1)
       II_hcw[s,t] = (1-gamma[s])*I_hcw[s-1,t-1]); 
       I_hcw[s,t] = floorInt(II_hcw[s,t]);       // convert to int
 
-      // Number of unknown infected patients at time t who got infected s-2 days ago 
+      // Number of unknown infected patients at time t who got infected s-1 days ago 
       // = Number of unknown infected patients a day before - those that are discharged, isolated, or die
       II_pU[s,t] = (1-delta[s])*I_pU[s-1,t-1];
       I_pU[s,t] = floorInt(II_pU[s,t]); // convert to int
