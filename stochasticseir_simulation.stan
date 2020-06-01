@@ -78,14 +78,14 @@ generated quantities {
     gen_time[t] = exp(weibull_lpdf(t | gen_shape, gen_scale)); 
   }
 
-  I_pU[1,1] = I_pu0;
-  I_hcw[1,1] = I_hcw0;
+  I_pU[1,1] = I_pu0;   // Initial number of unknown infected unisolated patients
+  I_hcw[1,1] = I_hcw0; // Intial number of infected HCWs 
   
   for(t in 2:T){
     for(s in 1:(t-1)){
-      // Infectivity from HCWs
+      // cumualtive infectivity from HCWs
       inf_hcw[t] += gen_time[s]*I_hcw[s,t-1];
-      // Infectivity from unknown infected patients
+      // cumualtive infectivity from unknown infected patients
       inf_p[t] += gen_time[s]*I_pU[s,t-1];
     }
     // Probability of infection for HCWs at time t
