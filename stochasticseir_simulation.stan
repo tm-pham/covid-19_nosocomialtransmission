@@ -102,16 +102,16 @@ generated quantities {
     // Recoveries, discharges, isolations, deaths
     for(s in 2:t){
       // Number of infected HCWs at time t who got infected s-1 days ago (note that stan starts counting at 1)
-      II_hcw[s,t] = (1-gamma[s])*I_hcw[s-1,t-1]); 
+      II_hcw[s,t] = (1-gamma[s-1])*I_hcw[s-1,t-1]); 
       I_hcw[s,t] = floorInt(II_hcw[s,t]);       // convert to int
 
       // Number of unknown infected patients at time t who got infected s-1 days ago 
       // = Number of unknown infected patients a day before - those that are discharged, isolated, or die
-      II_pU[s,t] = (1-delta[s])*I_pU[s-1,t-1];
+      II_pU[s,t] = (1-delta[s-1])*I_pU[s-1,t-1];
       I_pU[s,t] = floorInt(II_pU[s,t]); // convert to int
       
       // Returning (immune) HCWs at time t (here: real value)
-      ww[t] += gamma[s]*I_hcw[s,t-1];
+      ww[t] += gamma[s]*I_hcw[s,t];
     }
     // Returning (immune) HCWs at time t, converted from real to int
     w[t] = floorInt(ww[t]);
