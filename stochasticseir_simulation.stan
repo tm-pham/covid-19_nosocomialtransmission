@@ -111,7 +111,7 @@ generated quantities {
       I_pU[s,t] = floorInt(II_pU[s,t]); // convert to int
       
       // Returning (immune) HCWs at time t (here: real value)
-      ww[t] += gamma[s]*I_hcw[s,t];
+      ww[t] += gamma[s-1]*I_hcw[s,t];
     }
     // Returning (immune) HCWs at time t, converted from real to int
     w[t] = floorInt(ww[t]);
