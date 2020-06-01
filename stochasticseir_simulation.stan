@@ -7,6 +7,7 @@ data {
   int I_hcw0;                         // Initial number of unknown infected HCWs
   
   int<lower=0, upper=N> S_p[T];       // Number of susceptible patients at time t
+  int<lower=0, upper=N> I_p[T];       // Number of (isolated) infected patients in hospital at time t
   int<lower=0, upper=N> S_hcw[T];     // Number of susceptible HCWs at time t
 
   real delta[T];                      // Proportion of nosocomial infections, infected s days ago who are discharged, isolated or died
@@ -64,7 +65,7 @@ generated quantities {
   int I_pU[T,T];      // (int) Number of unknown (unisolated) infected patients at time t who were infected s days ago
   
   // Usually observed but here for simulation
-  int I_p[T];         // Number of (isolated) infected patients in hospital at time t
+
   int N_ncp[T];       // Number of non-cohorted patients at time t
 
   real p_hcw[T];      // Probability of infection for HCWs at time t
