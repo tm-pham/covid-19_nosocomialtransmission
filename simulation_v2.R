@@ -24,10 +24,8 @@ alpha_obs <- disp_obs/(1-p_p_obs)  # Parameter for beta-binomial distribution of
 beta_obs <- disp_obs/p_p_obs       # Parameter for beta-binomial distribution of observation process
 
 # Transmission parameters (assume to be known in simulation)
-f_hcw_p <- 0.001                   # known infected patient to HCW
 f_hcw_pp <- 0.001                  # unknown infected patient to HCW
 f_hcw_hcw <- 0.001                 # HCW to HCW
-f_p_p <- 0.001                     # Known infected patient to patient
 f_p_pp <- 0.001                    # Unkown infected patient to patient
 f_p_hcw <- 0.001                   # HCW to susceptible patient
 
