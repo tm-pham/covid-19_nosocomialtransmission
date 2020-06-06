@@ -70,7 +70,7 @@ pat_past_inf <- c(E0_p,rep(0,max_gen))
 pat_data[1:E0_p,3] <- 1 # Time of infection for first infected individuals (assume=1)
 
 
-# ============================= #
+# ====== ======================= #
 # HCW population
 # ============================= #
 N_hcw <- 200
