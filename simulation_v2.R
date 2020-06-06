@@ -11,9 +11,9 @@ source("nosocomialdetection_functions.R")
 # Parameters
 # ============================#
 max_time <- 3*30                   # Study period (days)
-delta <- rep(0.2, max_time)        # Proportion/Probability of nosocomial infections, infected s days ago who are discharged, isolated or died 
+delta <- rep(0.2, max_time)        # Proportion/Probability of nosocomial infections, infected s days ago who are discharged or died 
 
-HCW_isolation_period <-7           # Number of days HCWs isolate themselves on developing symptoms consistent with COVID
+HCW_isolation_period <- 7          # Number of days HCWs isolate themselves on developing symptoms consistent with COVID
                                    # for now assume a fixed isolation duration
 gen_shape <- 2.826                 # shape parameter for generation time distribution (Feretti et al)
 gen_scale <- 5.665                 # scale parameter for generation time distribution (Feretti et al)
@@ -49,26 +49,24 @@ prob_los <- cum_prob_los-c(0,cum_prob_los[1:(max_time-1)])
 # Data
 # ============================#
 # Health-care workers
-S_hcw <- rep(30, max_time)                            # Number of susceptible HCWs at time t
-I_hcwU <- matrix(c(10,rep(0,max_time*max_time-1)), ncol=max_time)   # Number of unknown infected HCWs at time t who got infected s-1 days ago
-new_symptomatic_hcw <- matrix(c(1,rep(0,max_time*max_time-1)), ncol=max_time)    # Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
-R_hcw <- rep(0,max_time)                              # Number of immune HCWs at time t
-isolated_hcw <- rep(0,max_time)                       # Number of isolated HCWs at time t
-obs_nosocomial<-rep(0,max_time)                       # Observed nosocomial infections
+S_hcw <- rep(30, max_time)                                                      # Number of susceptible HCWs at time t
+I_hcwU <- matrix(c(10,rep(0,max_time*max_time-1)), ncol=max_time)               # Number of unknown infected HCWs at time t who got infected s-1 days ago
+new_symptomatic_hcw <- matrix(c(1,rep(0,max_time*max_time-1)), ncol=max_time)   # Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
+R_hcw <- rep(0,max_time)                                                        # Number of immune HCWs at time t
+isolated_hcw <- rep(0,max_time)                                                 # Number of isolated HCWs at time t
+obs_nosocomial<-rep(0,max_time)                                                 # Observed nosocomial infections
 
 # Patients
-S_p <- rep(100, max_time)                             # Number of susceptible patients at time t
-I_pU <- matrix(c(20,rep(0, max_time*max_time-1)), ncol=max_time)    # Number of unknown (unisolated) infected patients at time t who were infected s days ago
-new_symptomatic_pat <- matrix(rep(1, max_time*max_time), ncol=max_time)           # Number of unisolated infected patients who were infected s days ago and developed symptoms
-
-# initialize with number of severely infected patients arriving from community
-N_ncp <- rep(S_p+I_pU[1,max_time], max_time)                 # Number of non-cohorted patients at time t
+S_p <- rep(100, max_time)                                                       # Number of susceptible patients at time t
+I_pU <- matrix(c(20,rep(0, max_time*max_time-1)), ncol=max_time)                # Number of unknown (unisolated) infected patients at time t who were infected s days ago
+new_symptomatic_pat <- matrix(rep(1, max_time*max_time), ncol=max_time)         # Number of unisolated infected patients who were infected s days ago and developed symptoms
+N_ncp <- rep(S_p+I_pU[1,max_time], max_time)                                    # Number of non-cohorted patients at time t
 
 # Probability of infection
-p_hcw <- rep(0,max_time)                      # Probability of infection for HCWs at time t
-p_p <- rep(0,max_time)                        # Probability of infection for patients at time t
-inf_hcw <- rep(0,max_time)                    # Infectivity from HCWs (densitiy dependent)
-inf_p <- rep(0,max_time)                      # Infectivity from patients (densitiy dependent)
+p_hcw <- rep(0,max_time)        # Probability of infection for HCWs at time t
+p_p <- rep(0,max_time)          # Probability of infection for patients at time t
+inf_hcw <- rep(0,max_time)      # Infectivity from HCWs (densitiy dependent)
+inf_p <- rep(0,max_time)        # Infectivity from patients (densitiy dependent)
 
 # Generation time distribution (Ferretti et al, 2020)
 gen_time <- dweibull(seq(1,max_time,by=1),shape=gen_shape, scale=gen_scale)
