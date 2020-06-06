@@ -105,9 +105,9 @@ for(t in 2:max_time){
 
     # PATIENTS
     # I_pU[s-1,t-1] = number of unknown infected patients at time t-1 who got infected s-1 days ago
-    # the following three things can happen to these patients at the next time step
+    # The following three things can happen to these patients at the next time step
     # 1) they may be discharged or die (or recover). Probability of this is delta[s-1]
-    # 2) they may stay on the ward and develop symtpoms. Probability of this is (1-delta[s-1])*inc_distr[s]
+    # 2) they may stay on the ward and develop symptoms. Probability of this is (1-delta[s-1])*inc_distr[s]
     # 3) they may stay on the ward and not develop symtpoms. Probability of this is (1-delta[s-1])*(1-inc_distr[s])
     outcomes<-rmultinom(1,I_pU[s-1,t-1],c(delta[s-1],(1-delta[s-1])*inc_distr[s],(1-delta[s-1])*(1-inc_distr[s])))
     I_pU[s,t]<-outcomes[3,1]
@@ -119,13 +119,9 @@ for(t in 2:max_time){
   # Beta-binomial distribution for observation process
   obs_nosocomial[t] <- rbb(1, N=sum(new_symptomatic_pat[1:t,t]), u=alpha_obs, v=beta_obs)
   
-  # Number of immune HCWs at time t
   # Assume that symptomatic HCWs self-isolate and return to work after 7 days with immunity
-  if(t>7){
-    hcw_recover <- sum(new_symptomatic_hcw[,t-7])
-  } else {
-    hcw_recover <- 0
-  }
+  hcw_recover <- ifelse(t>7, sum(new_symptomatic_hcw[,t-7]), 0)
+
   # Number of isolated HCWs
   # = Number of isolated HCWs the day before - those that recover and those that are still infected at time t (got infected 1,2,...,t days ago)
   # Assume HCWs are isolated immediately
