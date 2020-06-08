@@ -1,19 +1,24 @@
 # =============================================================================#
 # NOSOCOMIAL TRANSMISSION
 # Simulate data
-# 6th June
+# 8th June 2020
 # adapted from https://github.com/tm-pham/covid-19_nosocomialtransmission/blob/master/simulation.R
 # =============================================================================#
+
+setwd("/Users/tm-pham/PhD/covid-19/nosocomialtransmission/stochasticepidemicmodel/stan")
 # Libraries
-library("TailRank") # for beta binomial distribution
-source("nosocomialdetection_functions.R")
+# For beta binomial distribution
+if("TailRank"%in%installed.packages()) library("TailRank")
+if("extraDistr"%in%instsalled.packages()) library("extraDistr") 
+
 # ============================#
 # Parameters
 # ============================#
 max_time <- 3*30                   # Study period (days)
-delta <- rep(0.2, max_time)        # Proportion/Probability of nosocomial infections, infected s days ago who are discharged or died 
+S <- 14                            # Maximum number of days to be infectious
+delta <- rep(0.2, max_time)        # Proportion/Probability of nosocomial infections who are discharged or died 
 
-HCW_isolation_period <- 7          # Number of days HCWs isolate themselves on developing symptoms consistent with COVID
+hcw_isolation_period <- 7          # Number of days HCWs isolate themselves on developing symptoms consistent with COVID
                                    # for now assume a fixed isolation duration
 gen_shape <- 2.826                 # shape parameter for generation time distribution (Feretti et al)
 gen_scale <- 5.665                 # scale parameter for generation time distribution (Feretti et al)
@@ -51,14 +56,16 @@ S_hcw <- rep(30, max_time)                                                      
 I_hcwU <- matrix(c(10,rep(0,max_time*max_time-1)), ncol=max_time)               # Number of unknown infected HCWs at time t who got infected s-1 days ago
 new_symptomatic_hcw <- matrix(c(1,rep(0,max_time*max_time-1)), ncol=max_time)   # Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
 R_hcw <- rep(0,max_time)                                                        # Number of immune HCWs at time t
-isolated_hcw <- rep(0,max_time)                                                 # Number of isolated HCWs at time t
-obs_nosocomial<-rep(0,max_time)                                                 # Observed nosocomial infections
+isolated_hcw <- rep(10,max_time)                                                 # Number of isolated HCWs at time t
+obs_nosocomial<-rep(10,max_time)                                                 # Observed nosocomial infections
 
 # Patients
 S_p <- rep(100, max_time)                                                       # Number of susceptible patients at time t
 I_pU <- matrix(c(20,rep(0, max_time*max_time-1)), ncol=max_time)                # Number of unknown (unisolated) infected patients at time t who were infected s days ago
 new_symptomatic_pat <- matrix(rep(1, max_time*max_time), ncol=max_time)         # Number of unisolated infected patients who were infected s days ago and developed symptoms
-N_ncp <- rep(S_p+I_pU[1,max_time], max_time)                                    # Number of non-cohorted patients at time t
+N_ncp <- rep(S_p[1]+I_pU[1,1], max_time)                                    # Number of non-cohorted patients at time t
+# Assume the following is observed
+I_p <- rep(10, max_time)                                                        # Number of isolated infected patients at time t
 
 # Probability of infection
 p_hcw <- rep(0,max_time)        # Probability of infection for HCWs at time t
@@ -80,21 +87,34 @@ for(t in 2:max_time){
   # Cumulative infectivity from patients
   inf_p[t] <- sum(gen_time*I_pU[,t-1])
   # Probability of infection for HCWs at time t
-  p_hcw[t] = 1-exp(-f_hcw_hcw*inf_hcw[t] - f_hcw_pp*inf_p[t])
+  p_hcw[t] = 1-exp(-f_hcw_hcw*inf_hcw[t] - f_hcw_pp*inf_p[t] - f_p_p*I_p[t])
   # Probability of infection for patients at time t
-  p_p[t] = 1-exp(-f_p_hcw*inf_hcw[t] - f_p_pp*inf_p[t])
+  p_p[t] = 1-exp(-f_p_hcw*inf_hcw[t] - f_p_pp*inf_p[t] - f_hcw_p*I_p[t])
   
   # Number of newly infected HCWs at time t (beta-binomial)
   alpha_hcw <- disp_inf/(1-p_hcw)  # Parameter for beta-binomial distribution
   beta_hcw <- disp_inf/(1-p_hcw)   # Parameter for beta-binomial distribution
-  I_hcwU[1,t] <- rbb(1, N=S_hcw[t], u=alpha_hcw, v=beta_hcw)
-
+  
   # Number of newly infected patients at time t (beta-binomial)
   alpha_p <- disp_inf/(1-p_p)     # Parameter for beta-binomial distribution
   beta_p <- disp_inf/(1-p_p)      # Parameter for beta-binomial distribution
-  I_pU[1,t] <- rbb(1, N=S_p[t], u=alpha_p, v=beta_p)
+  
+  # For beta binomial distribution
+  if("TailRank"%in%installed.packages()){
+    I_hcwU[1,t] <- rbb(1, N=S_hcw[t], u=alpha_hcw, v=beta_hcw)
+    I_pU[1,t] <- rbb(1, N=S_p[t], u=alpha_p, v=beta_p)
+  }else{
+    if("extraDistr"%in%installed.packages()){
+      I_hcwU[1,t] <- rbbinom(1, size=S_hcw[t], alpha = alpha_hcw, beta = beta_hcw)
+      I_pU[1,t] <- rbbinom(1, size=S_p[t], alpha=alpha_p, beta=beta_p)
+    }else{
+      print("No package for beta-binomial distribution installed. Aborting simulation...")
+      break;
+    }
+  } 
+  
 
-  for(s in 2:t){
+  for(s in 2:S){
     # (note that R starts counting at 1)
     # HEALTH-CARE WORKERS
     # Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
@@ -117,10 +137,19 @@ for(t in 2:max_time){
   
   # Number of known (isolated) infected patients at time t
   # Beta-binomial distribution for observation process
-  obs_nosocomial[t] <- rbb(1, N=sum(new_symptomatic_pat[1:t,t]), u=alpha_obs, v=beta_obs)
+  if("TailRank"%in%installed.packages()){
+    obs_nosocomial[t] <- rbb(1, N=sum(new_symptomatic_pat[1:t,t]), u=alpha_obs, v=beta_obs)
+  }else{
+    if("extraDistr"%in%installed.packages()) library("extraDistr"){
+      obs_nosocomial[t] <- rbbinom(1, size=sum(new_symptomatic_pat[1:t,t]), alpha=alpha_obs, beta=beta_obs)
+    }else{
+      print("No package for beta-binomial distribution installed. Aborting simulation...")
+      break;
+    }
+  }
   
   # Assume that symptomatic HCWs self-isolate and return to work after 7 days with immunity
-  hcw_recover <- ifelse(t>7, sum(new_symptomatic_hcw[,t-7]), 0)
+  hcw_recover <- ifelse(t>hcw_isolation_period, sum(new_symptomatic_hcw[,t-hcw_isolation_period]), 0)
 
   # Number of isolated HCWs
   # = Number of isolated HCWs the day before - those that recover and those that are still infected at time t (got infected 1,2,...,t days ago)
@@ -131,3 +160,23 @@ for(t in 2:max_time){
   # Number of non-cohorted patients
   N_ncp[t] <- S_p[t] + I_pU[1,t]
 }
+
+
+sim_data <- list(T=max_time, 
+                 S=S, 
+                 N_ncp=N_ncp, 
+                 I_p=I_p, 
+                 obs_nosocomial=obs_nosocomial, 
+                 S_hcw=S_hcw, 
+                 hcw_isolation_period=hcw_isolation_period, 
+                 delta=delta, 
+                 gen_shape=gen_shape, 
+                 meanlog=meanlog, 
+                 sdlog=sdlog, 
+                 prob_asymptomatic=prob_asymptomatic, 
+                 p_p_obs=p_p_obs)
+
+
+saveRDS(sim_data, file="sim_data.RDS")
+
+
