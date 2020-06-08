@@ -38,6 +38,7 @@ transformed data {
   real inc_distr[T];                 // Probability of developing symptoms after s days of infection
   real gen_time[T];                  // Generation time distribution 
   simplex[3] p_multi[T-1];           // Array of simplex for multinomial distribution
+  vector[3] temp;
   
   for(t in 1:T){
     inc_distr[t] = (1-prob_asymptomatic)*exp(lognormal_lpdf(t|meanlog, sdlog));
@@ -45,9 +46,10 @@ transformed data {
   }
   
   for(s in 2:S){
-    p_multi[s-1][1] = delta[s-1];
-    p_multi[s-1][2] = (1-delta[s-1])*inc_distr[s];
-    p_multi[s-1][3] = (1-delta[s-1])*(1-inc_distr[s]);
+    temp[1] = delta[s-1];
+    temp[2] = (1-delta[s-1])*inc_distr[s];
+    temp[3] = (1-delta[s-1])*(1-inc_distr[s]);
+    p_multi[s-1]= temp;  
   }
 }
 
