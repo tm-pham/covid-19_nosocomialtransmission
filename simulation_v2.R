@@ -9,7 +9,7 @@ setwd("/Users/tm-pham/PhD/covid-19/nosocomialtransmission/stochasticepidemicmode
 # Libraries
 # For beta binomial distribution
 if("TailRank"%in%installed.packages()) library("TailRank")
-if("extraDistr"%in%instsalled.packages()) library("extraDistr") 
+if("extraDistr"%in%installed.packages()) library("extraDistr") 
 
 # ============================#
 # Parameters
@@ -52,18 +52,19 @@ prob_los <- cum_prob_los-c(0,cum_prob_los[1:(max_time-1)])
 # Data
 # ============================#
 # Health-care workers
+N_hcw <- rep(100, max_time)                                                     # Total number of HCWs at time t
 S_hcw <- rep(30, max_time)                                                      # Number of susceptible HCWs at time t
 I_hcwU <- matrix(c(10,rep(0,max_time*max_time-1)), ncol=max_time)               # Number of unknown infected HCWs at time t who got infected s-1 days ago
 new_symptomatic_hcw <- matrix(c(1,rep(0,max_time*max_time-1)), ncol=max_time)   # Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
 R_hcw <- rep(0,max_time)                                                        # Number of immune HCWs at time t
-isolated_hcw <- rep(10,max_time)                                                 # Number of isolated HCWs at time t
-obs_nosocomial<-rep(10,max_time)                                                 # Observed nosocomial infections
+isolated_hcw <- rep(10,max_time)                                                # Number of isolated HCWs at time t
+obs_nosocomial<-rep(10,max_time)                                                # Observed nosocomial infections
 
 # Patients
 S_p <- rep(100, max_time)                                                       # Number of susceptible patients at time t
 I_pU <- matrix(c(20,rep(0, max_time*max_time-1)), ncol=max_time)                # Number of unknown (unisolated) infected patients at time t who were infected s days ago
 new_symptomatic_pat <- matrix(rep(1, max_time*max_time), ncol=max_time)         # Number of unisolated infected patients who were infected s days ago and developed symptoms
-N_ncp <- rep(S_p[1]+I_pU[1,1], max_time)                                    # Number of non-cohorted patients at time t
+N_ncp <- rep(S_p[1]+I_pU[1,1], max_time)                                        # Number of non-cohorted patients at time t
 # Assume the following is observed
 I_p <- rep(10, max_time)                                                        # Number of isolated infected patients at time t
 
@@ -140,7 +141,7 @@ for(t in 2:max_time){
   if("TailRank"%in%installed.packages()){
     obs_nosocomial[t] <- rbb(1, N=sum(new_symptomatic_pat[1:t,t]), u=alpha_obs, v=beta_obs)
   }else{
-    if("extraDistr"%in%installed.packages()) library("extraDistr"){
+    if("extraDistr"%in%installed.packages()){
       obs_nosocomial[t] <- rbbinom(1, size=sum(new_symptomatic_pat[1:t,t]), alpha=alpha_obs, beta=beta_obs)
     }else{
       print("No package for beta-binomial distribution installed. Aborting simulation...")
@@ -157,6 +158,8 @@ for(t in 2:max_time){
   isolated_hcw[t] <- isolated_hcw[t-1] - hcw_recover + sum(new_symptomatic_hcw[1:t,t])
   # Number of recovered HCWs
   R_hcw[t] = R_hcw[t-1] + hcw_recover
+  # Number of susceptible HCWs
+  S_hcw[t] = N_hcw[t] - R_hcw[t] - I_hcwU[1,t] - isolated_hcw[t];
   # Number of non-cohorted patients
   N_ncp[t] <- S_p[t] + I_pU[1,t]
 }
@@ -166,11 +169,18 @@ sim_data <- list(T=max_time,
                  S=S, 
                  N_ncp=N_ncp, 
                  I_p=I_p, 
-                 obs_nosocomial=obs_nosocomial, 
-                 S_hcw=S_hcw, 
+                 obs_nosocomial=obs_nosocomial,
+                 i_pU0 = I_pU[1,1], 
+                 new_symptomatic_pat0 = new_symptomatic_pat[1],
+                 N_hcw=N_hcw, 
                  hcw_isolation_period=hcw_isolation_period, 
+                 i_hcwU0 = I_hcwU[1,1],
+                 isolated_hcw0 = isolated_hcw[1],
+                 new_symptomatic_hcw0 = new_symptomatic_hcw[1,1],
+                 r_hcw0=R_hcw[1],
                  delta=delta, 
-                 gen_shape=gen_shape, 
+                 gen_shape=gen_shape,
+                 gen_scale=gen_scale,
                  meanlog=meanlog, 
                  sdlog=sdlog, 
                  prob_asymptomatic=prob_asymptomatic, 
