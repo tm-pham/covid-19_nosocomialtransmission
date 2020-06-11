@@ -4,7 +4,7 @@
 // ========================================================================== //
 data {
   int T;                              // Study period
-  //int S;                            // Maximum number of days to be infectious 
+  int S;                              // Not used for now. Maximum number of days to be infectious 
   int<lower=0> N_ncp[T];              // Number of non-cohorted patients at time t
   int<lower=0> I_p[T];                // Number of (isolated) infected patients in hospital at time t
   int obs_nosocomial[T];              // Observed number of nosocomial cases at time t
