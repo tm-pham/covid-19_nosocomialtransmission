@@ -7,10 +7,10 @@ setwd("/Users/tm-pham/PhD/covid-19/nosocomialtransmission/stochasticepidemicmode
 sim_data <- readRDS("sim_data.RDS")
 
 # Data
-pDshape <- 0.1                        # Shape for gamma distribution for dispersion parameter for transmission process
+pDshape <- 0.1                      # Shape for gamma distribution for dispersion parameter for transmission process
 pDrate <- 0.5                       # Rate for gamma distribution for dispersion parameter for transmission process
 
-pDshape_obs <- 0.1                    # Shape for gamma distribution for dispersion parameter for observation process
+pDshape_obs <- 0.1                  # Shape for gamma distribution for dispersion parameter for observation process
 pDrate_obs <- 0.5                   # Rate for gamma distribution for dispersion parameter for observation process
 
 fshape <- 1                         # Shape for gamma distribution for transmission parameters
