@@ -19,13 +19,13 @@ data {
   real<lower=0> new_symptomatic_hcw0; // Initial number of symptomatic HCWs at time 1
   real r_hcw0;                        // Initial number of recovered HCWs at time 1
 
-  real<lower=0> delta[T];                      // Probability to be discharged or die at time t
+  real<lower=0> delta[T];             // Probability to be discharged or die at time t
 
-  real gen_shape;                     // shape parameter for generation time distribution (Feretti et al)
-  real gen_scale;                     // scale parameter for generation time distribution (Feretti et al)
+  real gen_shape;                     // Shape parameter for generation time distribution (Feretti et al)
+  real gen_scale;                     // Scale parameter for generation time distribution (Feretti et al)
   
-  real meanlog;                       // log mean for log normal distribution for probability of developing symptoms after infection
-  real sdlog;                         // log sd for log normal distribution for probability of developing symptoms after infection
+  real meanlog;                       // Log mean for log normal distribution for probability of developing symptoms after infection
+  real sdlog;                         // Log sd for log normal distribution for probability of developing symptoms after infection
 
   real<lower=0> prob_asymptomatic;    // Proportion of infected individuals who are asymptomatic
   
@@ -70,7 +70,7 @@ parameters {
   real <lower=0>pDis;                          // Dispersion parameter for gamma distribution of transmission process 
   real <lower=0>pDis_obs;                      // Dispersion parameter for gamma distribution of observation process 
   real <lower=0>I_hcwUU[T];                    // Number of newly infected HCWs at time t (Continuous gamma approximation)
-  real <lower=0>I_pUU[T];
+  real <lower=0>I_pUU[T];                      // Number of newly infected patients at time t (Continuous gamma approximation)
   real <lower=0>hcw_symp;                      // Number of newly symptomatic HCWs
   real <lower=0>discharge_dead_pat;
   real <lower=0>symp_pat;
@@ -89,30 +89,32 @@ model{
   real temp_I_pU;
   real R_hcw[T];                     // Number of immune HCWs at time t
   
-  real p_gamma_rate[T-1];              // Rate for gamma distribution for I_pU
-  real p_gamma_shape[T-1];             // Shape for gamma distribution for I_pU
+  real p_gamma_rate[T-1];            // Rate for gamma distribution for I_pU
+  real p_gamma_shape[T-1];           // Shape for gamma distribution for I_pU
   
-  real p_d_gamma_rate;                 // Rate for gamma distribution for I_pU
-  real p_d_gamma_shape;                // Shape for gamma distribution for I_pU
+  real p_d_gamma_rate;               // Rate for gamma distribution for I_pU that are discharged or die
+  real p_d_gamma_shape;              // Shape for gamma distribution for I_pU that are discharged or die
   
-  real p_symp_gamma_rate;              // Rate for gamma distribution for I_pU
-  real p_symp_gamma_shape;             // Shape for gamma distribution for I_pU
+  real p_symp_gamma_rate;            // Rate for gamma distribution for I_pU[t] that become symptomatic
+  real p_symp_gamma_shape;           // Shape for gamma distribution for I_pU[t] that become symptomatic
   
-  real hcw_gamma_rate[T-1];            // Rate for gamma distribution for I_hcwU
-  real hcw_gamma_shape[T-1];           // Shape for gamma distribution for I_hcwU
+  real hcw_gamma_rate[T-1];          // Rate for gamma distribution for I_hcwU[t]
+  real hcw_gamma_shape[T-1];         // Shape for gamma distribution for I_hcwU[t]
   
-  real inf_p[T-1];                     // Infectivity of (unknown) infected patients
-  real inf_hcw[T-1];                   // Infectivity of (unknown) infected HCWs
+  real hcw_symp_gamma_rate;          // Rate for gamma distribution for I_hcwU[s,t]
+  real hcw_symp_gamma_shape;         // Shape for gamma distribution for I_hcwU[s,t]
   
-  real p_p[T-1];                       // Probability of infection for patients at time t
-  real p_hcw[T-1];                     // Probability of infection for HCWs at time t
-  real prob_symp;
+  real inf_p[T-1];                   // Infectivity of (unknown) infected patients
+  real inf_hcw[T-1];                 // Infectivity of (unknown) infected HCWs
   
-  int ind[2];
+  real p_p[T-1];                     // Probability of infection for patients at time t
+  real p_hcw[T-1];                   // Probability of infection for HCWs at time t
+  
+  real prob_symp;                    // Probability for patient to stay on the ward and develop symptoms
 
   // Priors for dispersion parameters
-  pDis ~ gamma(pDshape,pDrate);                // Dispersion parameter for transmission process
-  pDis_obs ~ gamma(pDshape_obs, pDrate_obs);   // Dispersion parameter for observation process
+  pDis ~ gamma(pDshape,pDrate);               // Dispersion parameter for transmission process
+  pDis_obs ~ gamma(pDshape_obs, pDrate_obs);  // Dispersion parameter for observation process
   
   // Priors for transmission parameters
   f_pU_p ~ gamma(fshape, frate);
@@ -122,22 +124,25 @@ model{
   f_hcw_hcw ~ gamma(fshape, frate);
   f_hcw_p ~ gamma(fshape, frate);
   
+  // ================ //
   // Initial values
+  // ================ //
+  // Patients
   I_pU[1,1] = i_pU0;
   S_p[1] = N_ncp[1] - I_pU[1,1];
   new_symptomatic_pat[1,1] = new_symptomatic_pat0;
-  
+  // HCWs
   I_hcwU[1,1] = i_hcwU0;
   isolated_hcw[1] = isolated_hcw0;
   R_hcw[1] = r_hcw0;
   S_hcw[1] = N_hcw[1] - R_hcw[1] - I_hcwU[1,1] - isolated_hcw[1];
   new_symptomatic_hcw[1,1] = new_symptomatic_hcw0;
   
-  
+  // Start loop
   for(t in 2:T){
+    // Cumulative infectivity 
     inf_hcw[t-1] = 0;
     inf_p[t-1] = 0;
-    //print("min(",t-1,",",S,")=",min(ind));
     for(s in 1:(t-1)){
       // Cumulative infectivity from HCWs
       inf_hcw[t-1] += gen_time[s]*I_hcwU[s,t-1];
@@ -145,30 +150,34 @@ model{
       inf_p[t-1] += gen_time[s]*I_pU[s,t-1];
     }
     
-    // Probability of infection for HCWs at time t
-    // Should I_p be divided by N_ncp?
-    p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1] - f_p_p*I_p[t-1]);
+    // =================================== //
+    // Probability of infection at time t
+    // ================================== //
+    // HCWs
+    p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1] - f_p_p*I_p[t-1]); // Should I_p be divided by N_ncp?
 
-    // Probability of infection for patients at time t
-    p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1] - f_p_hcw*I_p[t-1]);
+    // Patients
+    p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1] - f_p_hcw*I_p[t-1]); // Should I_p be divided by N_ncp?
 
-    // Shape and rate parameters for new infections
+    // Shape and rate parameters for gamma distribution for new infections
     hcw_gamma_rate[t-1] = (pDis + p_hcw[t-1]*(1-p_hcw[t-1]))/((1-p_hcw[t-1])*(pDis + S_hcw[t-1]*p_hcw[t-1]*(1-p_hcw[t-1]))); 
     hcw_gamma_shape[t-1] = p_hcw[t-1]*hcw_gamma_rate[t-1]*S_hcw[t-1];
     
     p_gamma_rate[t-1] = (pDis + p_p[t-1]*(1-p_p[t-1]))/((1-p_p[t-1])*(pDis + S_p[t-1]*p_p[t-1]*(1-p_p[t-1]))); 
     p_gamma_shape[t-1] = p_p[t-1]*p_gamma_rate[t-1]*S_p[t-1];
    
-    
-    // Number of newly infected HCWs at time t (Continuous gamma approximation)
+    // ========================================= //
+    // Number of newly infected HCWs at time t 
+    // (Continuous gamma approximation)
+    // ========================================= //
+    // HCWs
     if(hcw_gamma_shape[t-1]>0){
       I_hcwUU[t] ~ gamma(hcw_gamma_shape[t-1],hcw_gamma_rate[t-1]);
       I_hcwU[1,t] = I_hcwUU[t];
     }else{
       I_hcwU[1,t] = 0;
     }
-
-    // Number of newly infected patients at time t (Continuous gamma approximation)
+    // Patients
     if(p_gamma_shape[t-1]>0){
       I_pUU[t] ~ gamma(p_gamma_shape[t-1],p_gamma_rate[t-1]/p_p_obs);
       I_pU[1,t] = I_pUU[t];
@@ -176,24 +185,29 @@ model{
       I_pU[1,t] = 0;
     }
 
-    // Number of susceptible patients
+    // Remaining number of susceptible patients
     if(N_ncp[t] > I_pU[1,t]){
       S_p[t] = N_ncp[t] - I_pU[1,t];
     }else{
       S_p[t] = 0;
     }
     
+    // ========================================================================== //
+    // Update number of unknown infected individuals who got infected s days ago 
+    // ========================================================================= //
     for(s in 2:t){
-      // HEALTH-CARE WORKERS
-      // Number of unknown infected HCWs who got infected s-1 days ago and develop symptoms at time t
+      // ===================================================== //
+      // Health-care workers
+      // May develop symptoms (and are then isolated at home)
+      // ===================================================== //
       if(I_hcwU[s-1,t-1]>0){
-        real hcw_symp_gamma_rate = 1.0/(1.0-inc_distr[s]);
-        real hcw_symp_gamma_shape = I_hcwU[s-1,t-1]*inc_distr[s]*hcw_symp_gamma_rate;
-        
+        // New unknown infected HCWs who got infected s days ago and develop symptoms at time t
+        hcw_symp_gamma_rate = 1.0/(1.0-inc_distr[s]);
+        hcw_symp_gamma_shape = I_hcwU[s-1,t-1]*inc_distr[s]*hcw_symp_gamma_rate;
         hcw_symp ~ gamma(hcw_symp_gamma_shape,hcw_symp_gamma_rate);
+        // Remaining unknown infected HCWs at time t who got infected s-1 days ago
         if(I_hcwU[s-1,t-1] > hcw_symp){
           new_symptomatic_hcw[s-1,t] = hcw_symp;
-          // Remaining unknown infected HCWs at time t who got infected s-1 days ago
           I_hcwU[s,t] = I_hcwU[s-1,t-1] - hcw_symp;
         }else{
           new_symptomatic_hcw[s-1,t] = I_hcwU[s-1,t-1]; 
@@ -203,12 +217,19 @@ model{
         new_symptomatic_hcw[s-1,t] = 0; 
         I_hcwU[s,t] = 0;
       }
-
-      // PATIENTS
+      // =============================================================================================== //
+      // Patients
+      // Three options
+      // 1. Be discharged or die (with probability delta[s-1])
+      // 2. Stay on the ward and evelop symptoms at time t ( with probability (1-delta[s-1])*prob_symp)
+      // 3. Stay on the ward and do not develop symptoms (with probability (1-delta[s-1])*(1-prob_symp))
+      // ===============================================================================================//
       if(I_pU[s-1,t-1]>0){
+        // Unkown infected patients that are discharged or die
         p_d_gamma_rate = (pDis + delta[s-1]*(1-delta[s-1]))/((1-delta[s-1])*(pDis + I_pU[s-1,t-1]*delta[s-1]*(1-delta[s-1]))); 
         p_d_gamma_shape = I_pU[s-1,t-1]*delta[s-1]*p_d_gamma_rate;
         discharge_dead_pat ~ gamma(p_d_gamma_shape,p_d_gamma_rate);
+        // Unknown infected patients that develop symptoms
         if(I_pU[s-1,t-1] - discharge_dead_pat>0){
           temp_I_pU = I_pU[s-1,t-1] - discharge_dead_pat;
           prob_symp = (1-delta[s-1])*inc_distr[s];
@@ -238,31 +259,35 @@ model{
       // Number of unisolated infected patients who were infected s days ago and developed symptoms at time t
       // new_symptomatic_pat[s-1,t] = pat_outcomes[s-1,2];
     }
+    // ========================================================= //
+    // Number of known (isolated) infected patients at time t
+    // ========================================================= //
+    obs_nosocomial ~ neg_binomial(I_pU[1,t], pDis_obs);
+    
+    // ========================================================================================= //
+    // Number of isolated HCWs
     // Assume that symptomatic HCWs self-isolate and return to work after 7 days with immunity
+    // Assume HCWs are isolated immediately
+    // ========================================================================================= //
     if(t > hcw_isolation_period){
-      hcw_recover = sum(new_symptomatic_pat[1:(t-hcw_isolation_period-1),t-hcw_isolation_period]);
+      hcw_recover = sum(new_symptomatic_hcw[1:(t-hcw_isolation_period-1),t-hcw_isolation_period]);
     }else{
       hcw_recover = 0;
     }
-  // Number of known (isolated) infected patients at time t
-  obs_nosocomial ~ neg_binomial(I_pUU[t], pDis_obs);
-  
-  // Number of isolated HCWs
-  // = Number of isolated HCWs the day before - those that recover and those that are still infected at time t (got infected 1,2,...,t days ago)
-  // Assume HCWs are isolated immediately
-  if(isolated_hcw[t-1] - hcw_recover + sum(new_symptomatic_hcw[1:(t-1),t])){
-    isolated_hcw[t] = isolated_hcw[t-1] - hcw_recover + sum(new_symptomatic_hcw[1:(t-1),t]);
-  }else{
-    isolated_hcw[t] = 0;
-  }
-
-  // Number of recovered HCWs
-  R_hcw[t] = R_hcw[t-1] + hcw_recover;
-  // Number of susceptible HCWs
-  if(N_hcw[t] - R_hcw[t] - I_hcwU[1,t] - isolated_hcw[t]>0){
-    S_hcw[t] = N_hcw[t] - R_hcw[t] - I_hcwU[1,t] - isolated_hcw[t];
-  }else{
-    S_hcw[t] = 0;
-  }
+    // Number of isolated HCWs
+    // = Number of isolated HCWs the day before - those that recover and those that are still infected at time t (got infected 1,2,...,t days ago)
+    if(isolated_hcw[t-1] - hcw_recover + sum(new_symptomatic_hcw[1:(t-1),t])){
+      isolated_hcw[t] = isolated_hcw[t-1] - hcw_recover + sum(new_symptomatic_hcw[1:(t-1),t]);
+    }else{
+      isolated_hcw[t] = 0;
+    }
+    // Number of recovered HCWs
+    R_hcw[t] = R_hcw[t-1] + hcw_recover;
+    // Number of remaining susceptible HCWs
+    if(N_hcw[t] - R_hcw[t] - I_hcwU[1,t] - isolated_hcw[t]>0){
+      S_hcw[t] = N_hcw[t] - R_hcw[t] - I_hcwU[1,t] - isolated_hcw[t];
+    }else{
+      S_hcw[t] = 0;
+    }
   }
 }
