@@ -133,6 +133,7 @@ model{
   // pDis_obs ~ gamma(pDshape_obs, pDrate_obs);  // Dispersion parameter for observation process
   
   // Priors for transmission parameters
+  // Half-normal distribution
   // f_pU_hcw ~ normal(f_mu[1], f_sigma[1]);
   // f_pU_p ~ normal(f_mu[2], f_sigma[2]);
   // f_p_hcw ~ normal(f_mu[3], f_sigma[3]);
@@ -140,6 +141,7 @@ model{
   // f_hcw_hcw ~ normal(f_mu[5], f_sigma[5]);
   // f_hcw_p ~ normal(f_mu[6], f_sigma[6]);
   
+  // Uniform distribution 
   f_pU_hcw ~ uniform(0.00001, f_mu[1]+0.00015);
   f_pU_p ~ uniform(0.00001, f_mu[2] +0.00015);
   f_p_hcw ~ uniform(0.00001, f_mu[3] +0.00015);
@@ -178,10 +180,10 @@ model{
     // ================================== //
     // HCWs
     p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1] - f_p_p*I_p[t-1]); // Should I_p be divided by N_ncp?
-    print("inf_hcw[", t-1, "]=", inf_hcw[t-1]);
-    print("inf_p[", t-1, "]=", inf_p[t-1]);
-    print("I_p[", t-1, "]=", I_p[t-1]);
-    print("N_ncp[", t-1, "]=", N_ncp[t-1]);
+    // print("inf_hcw[", t-1, "]=", inf_hcw[t-1]);
+    // print("inf_p[", t-1, "]=", inf_p[t-1]);
+    // print("I_p[", t-1, "]=", I_p[t-1]);
+    // print("N_ncp[", t-1, "]=", N_ncp[t-1]);
     // Patients
     p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1] - f_p_hcw*I_p[t-1]); // Should I_p be divided by N_ncp?
 
@@ -203,10 +205,10 @@ model{
     }else{
       I_hcwU[1,t] = 0;
     }
-    print("I_hcwU[", t, "]=", I_hcwU[1,t]);
-    print("S_hcw[", t-1, "]=", S_hcw[t-1]);
-    print("p_hcw[", t-1, "]=", p_hcw[t-1]);
-    print("hcw_gamma_shape[", t-1, "]=", hcw_gamma_shape[t-1]);
+    // print("I_hcwU[", t, "]=", I_hcwU[1,t]);
+    // print("S_hcw[", t-1, "]=", S_hcw[t-1]);
+    // print("p_hcw[", t-1, "]=", p_hcw[t-1]);
+    // print("hcw_gamma_shape[", t-1, "]=", hcw_gamma_shape[t-1]);
     // Patients
     if(p_gamma_shape[t-1]>0){
       I_pUU[t] ~ gamma(p_gamma_shape[t-1],p_gamma_rate[t-1]/p_p_obs);
@@ -214,10 +216,10 @@ model{
     }else{
       I_pU[1,t] = 0;
     }
-    print("I_pU[", t, "]=", I_pU[1,t]);
-    print("S_p[", t-1, "]=", S_p[t-1]);
-    print("p_p[", t-1, "]=", p_p[t-1]);
-    print("p_gamma_shape[", t-1, "]=", p_gamma_shape[t-1]);
+    // print("I_pU[", t, "]=", I_pU[1,t]);
+    // print("S_p[", t-1, "]=", S_p[t-1]);
+    // print("p_p[", t-1, "]=", p_p[t-1]);
+    // print("p_gamma_shape[", t-1, "]=", p_gamma_shape[t-1]);
     
 
     // Remaining number of susceptible patients
