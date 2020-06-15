@@ -16,23 +16,10 @@ pDshape_obs <- 10                  # Shape for gamma distribution for dispersion
 pDrate_obs <- 10                   # Rate for gamma distribution for dispersion parameter for observation process
 
 f_mu <- c(0.001, 0.001, 0.0001, 0.0001, 0.0005, 0.001)  # Mean for normal distribution for transmission parameters
-f_sigma <-  rep(0.01, length(f_mu))   # Sigma for normal distribution for transmission parameters
-
-f_pU_hcw_mu <- f_mu[1]
-f_pU_p_mu <- f_mu[2]
-f_p_hcw_mu <- f_mu[3]
-f_p_p_mu  <- f_mu[4]
-f_hcw_hcw_mu <- f_mu[5]
-f_hcw_p_mu <- f_mu[6]
+f_sigma <-  rep(0.001, length(f_mu))   # Sigma for normal distribution for transmission parameters
 
 sim_data <- append(sim_data, list(pDis=pDis, pDis_obs=pDis_obs, pDshape=pDshape, pDrate=pDrate, pDshape_obs=pDshape_obs, pDrate_obs=pDrate_obs, 
-                                  f_mu=f_mu, f_sigma=f_sigma,
-                                  f_pU_hcw_mu = f_pU_hcw_mu, 
-                                  f_pU_p_mu = f_pU_p_mu, 
-                                  f_p_hcw_mu = f_p_hcw_mu, 
-                                  f_p_p_mu = f_p_p_mu, 
-                                  f_hcw_hcw_mu = f_hcw_hcw_mu,
-                                  f_hcw_p_mu =f_hcw_p_mu))
+                                  f_mu=f_mu, f_sigma=f_sigma))
 
 fit <- stan(
   file = "nosocomialtransmission.stan",  # Input model version here 

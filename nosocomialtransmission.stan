@@ -42,13 +42,6 @@ data {
 
   real f_mu[6];                       // Mean values for normal distribution for transmission parameters
   real f_sigma[6];                    // Sd values for normal distribution for transmission parameters
-  
-  real f_pU_hcw_mu;
-  real f_pU_p_mu;
-  real f_p_hcw_mu;
-  real f_p_p_mu;
-  real f_hcw_hcw_mu;
-  real f_hcw_p_mu;
 }
 
 transformed data { 
@@ -71,12 +64,19 @@ transformed data {
 }
 
 parameters {
-  real <lower=0.00001, upper=f_pU_hcw_mu+0.00015>f_pU_hcw;            // from unknown infected patient to susceptible HCW
-  real <lower=0.00001, upper=f_pU_p_mu+0.00015>f_pU_p;                // from unkown infected patient to susceptible patient
-  real <lower=0.00001, upper=f_p_hcw_mu+0.00015>f_p_hcw;              // from known infected patient to susceptible HCW
-  real <lower=0.00001, upper=f_p_p_mu+0.00015>f_p_p;                  // from known infected patient to susceptible patient
-  real <lower=0.00001, upper=f_hcw_hcw_mu+0.00015>f_hcw_hcw;          // from unknown infected HCW to susceptible HCW
-  real <lower=0.00001, upper=f_hcw_p_mu+0.00015>f_hcw_p;              // from unknown infected HCW to susceptible patient
+  real <lower=0.00001, upper=f_mu[1]+0.00015>f_pU_hcw;            // from unknown infected patient to susceptible HCW
+  real <lower=0.00001, upper=f_mu[2]+0.00015>f_pU_p;                // from unkown infected patient to susceptible patient
+  real <lower=0.00001, upper=f_mu[3]+0.00015>f_p_hcw;              // from known infected patient to susceptible HCW
+  real <lower=0.00001, upper=f_mu[4]+0.00015>f_p_p;                  // from known infected patient to susceptible patient
+  real <lower=0.00001, upper=f_mu[5]+0.00015>f_hcw_hcw;          // from unknown infected HCW to susceptible HCW
+  real <lower=0.00001, upper=f_mu[6]+0.00015>f_hcw_p;              // from unknown infected HCW to susceptible patient
+
+  // real <lower=0>f_pU_hcw;                      // from unknown infected patient to HCW
+  // real <lower=0>f_pU_p;                        // from unkown infected patient to patient
+  // real <lower=0>f_p_hcw;                       // from known infected patient to HCW
+  // real <lower=0>f_p_p;                         // from known infected patient to patient
+  // real <lower=0>f_hcw_hcw;                     // from HCW to HCW
+  // real <lower=0>f_hcw_p;                       // from HCW to susceptible patient  
   
   //real <lower=0>pDis;                          // Dispersion parameter for gamma distribution of transmission process 
   //real <lower=0>pDis_obs;                      // Dispersion parameter for gamma distribution of observation process 
