@@ -15,10 +15,12 @@ pDrate <- 10                       # Rate for gamma distribution for dispersion 
 pDshape_obs <- 10                  # Shape for gamma distribution for dispersion parameter for observation process
 pDrate_obs <- 10                   # Rate for gamma distribution for dispersion parameter for observation process
 
-f_mu <- c(0.001, 0.001, 0.0001, 0.0001, 0.0005, 0.001)  # Mean for normal distribution for transmission parameters
+f_mu <- c(0.01, 0.01, 0.0005, 0.0005, 0.001, 0.001)  # Mean for normal distribution for transmission parameters
 f_sigma <-  rep(min(f_mu), length(f_mu))   # Sigma for normal distribution for transmission parameters
 
-sim_data <- append(sim_data, list(pDis=pDis, pDis_obs=pDis_obs, pDshape=pDshape, pDrate=pDrate, pDshape_obs=pDshape_obs, pDrate_obs=pDrate_obs, 
+sim_data <- append(sim_data, list(pDis=pDis, pDis_obs=pDis_obs, 
+                                  pDshape=pDshape, pDrate=pDrate, 
+                                  pDshape_obs=pDshape_obs, pDrate_obs=pDrate_obs, 
                                   f_mu=f_mu, f_sigma=f_sigma))
 
 fit <- stan(
