@@ -29,8 +29,8 @@ alpha_obs <- disp_obs/(1-p_p_obs)  # Parameter for beta-binomial distribution of
 beta_obs <- disp_obs/p_p_obs       # Parameter for beta-binomial distribution of observation process
 
 # Transmission parameters (assume to be known in simulation)
-f_pU_hcw <- 0.01                  # from unknown infected patient to susceptible HCW
-f_pU_p <- 0.01                    # from unkown infected patient to susceptible patient
+f_pU_hcw <- 0.05                  # from unknown infected patient to susceptible HCW
+f_pU_p <- 0.04                    # from unkown infected patient to susceptible patient
 f_p_hcw <- 0.0005                  # from known infected patient to susceptible HCW
 f_p_p <- 0.0005                    # from known infected patient to susceptible patient
 f_hcw_hcw <- 0.001                # from unknown infected HCW to susceptible HCW
@@ -93,9 +93,11 @@ for(t in 2:max_time){
   # Cumulative infectivity from patients
   inf_p[t-1] <- sum(gen_time*I_pU[,t-1])
   # Probability of infection for HCWs at time t
-  p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1] - f_p_p*I_p[t-1])
+  p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1] - f_p_hcw*I_p[t-1])
+  # p_hcw[t-1] = 1-exp(-f_hcw_hcw*inf_hcw[t-1] - f_pU_hcw*inf_p[t-1])
   # Probability of infection for patients at time t
-  p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1] - f_p_hcw*I_p[t-1])
+  p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1] - f_p_p*I_p[t-1])
+  # p_p[t-1] = 1-exp(-f_hcw_p*inf_hcw[t-1] - f_pU_p*inf_p[t-1])
   
   # Number of newly infected HCWs at time t (beta-binomial)
   alpha_hcw <- disp_inf/(1-p_hcw)  # Parameter for beta-binomial distribution
