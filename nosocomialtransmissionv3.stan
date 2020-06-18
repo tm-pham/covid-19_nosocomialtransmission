@@ -8,7 +8,7 @@ data {
   int<lower=0> N_ncp[T];              // Number of non-cohorted patients at time t
   int<lower=0> I_p[T];                // Number of (isolated) infected patients in hospital at time t
   int<lower=0> obs_nosocomial[T];     // Observed number of nosocomial cases at time t
-  int<lower=0> obs_hcw_infections[T];     // Observed number of infections in hcws at time t
+  int<lower=0> obs_hcw_infections[T]; // Observed number of infections in hcws at time t
 
   real<lower=0> i_pU0;                // Initial number of unknown (unisolated) infected patients at time 1 (start of time period)
   real<lower=0> new_symptomatic_pat0[T,T]; // Initial number of symptomatic infected patients at time 1 (start of time period)
@@ -34,7 +34,7 @@ data {
   real<lower=0> p_p_obs;              // Proportion of observed patient infections (CO-CIN)
   real<lower=0> p_hcw_obs;            // Proportion of observed patient infections (CO-CIN)
   
-  real eps;
+  real eps;                           // Minimum value for S_p, S_hcw, ...
   
   real pDis;                          // Dispersion parameter for infection process
   real pDis_obs;                      // Dispersion parameter for observation process
