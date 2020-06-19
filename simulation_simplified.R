@@ -123,10 +123,13 @@ for(t in 2:max_time){
   # Number of non-cohorted patients
   S_p[t] <- max(S_p[t-1] - I_pU[t], 0)
   
+  ind <- max(t-S, 1)
+  
   # HEALTH-CARE WORKERS
   # Number of unknown infected HCWs who develop symptoms at time t
   # Sample from HCW prevalence at t
-  sum_symp_hcw[t] <- rbinom(1, size=Prev_hcwU[1:(t-1)], prob=sum(I_hcwU[1:(t-1)]*rev(inc_distr[1:(t-1)])/sum(I_hcwU[1:(t-1)])))
+  # sum_symp_hcw[t] <- rbinom(1, size=Prev_hcwU[t-1], prob=sum(I_hcwU[1:(t-1)]*rev(inc_distr[1:(t-1)])/sum(I_hcwU[1:(t-1)])))
+  sum_symp_hcw[t] <- rbinom(1, size=Prev_hcwU[t-1], prob=sum(inc_distr[ind:(t-1)]))
 
   # Update the prevalence of HCWs at time t
   Prev_hcwU[t] <- max(Prev_hcwU[t-1] - sum_symp_hcw[t] + I_hcwU[t], 0)
@@ -138,7 +141,8 @@ for(t in 2:max_time){
   # 1) they may be discharged or die (or recover). Probability of this is delta[s-1]
   # 2) they may stay on the ward and develop symptoms. Probability of this is (1-delta[s-1])*inc_distr[s]
   # 3) they may stay on the ward and not develop symtpoms. Probability of this is (1-delta[s-1])*(1-inc_distr[s])
-  outcomes<-rmultinom(1, Prev_pU[t-1], c(delta[t],(1-delta[t])*sum(I_pU[1:(t-1)]*rev(inc_distr[1:(t-1)])/Prev_pU[t-1]),(1-delta[t])*(1-sum(I_pU[1:(t-1)]*rev(inc_distr[1:(t-1)])/Prev_pU[t-1]))))
+  outcomes<-rmultinom(1, Prev_pU[t-1], c(delta[t],(1-delta[t])*sum(inc_distr[ind:(t-1)]),(1-delta[t])*(1-sum(inc_distr[ind:(t-1)]))))
+  # outcomes<-rmultinom(1, Prev_pU[t-1], c(delta[t],(1-delta[t])*sum(I_pU[1:(t-1)]*rev(inc_distr[1:(t-1)])/Prev_pU[t-1]),(1-delta[t])*(1-sum(I_pU[1:(t-1)]*rev(inc_distr[1:(t-1)])/Prev_pU[t-1]))))
   discharged_dead_pat[t] <- outcomes[1,1]
   sum_symp_pat[t] <- outcomes[2,1]
   Prev_pU[t] <- outcomes[3,1] + I_pU[t]
@@ -162,7 +166,7 @@ for(t in 2:max_time){
   
 
   # Number of recovered HCWs
-  R_hcw[t] = R_hcw[t-1] + hcw_recover
+  R_hcw[t] = R_hcw[t-1] + hcw_isolated_recover
   # Number of susceptible HCWs
   S_hcw[t] = max(N_hcw[t] - R_hcw[t] - I_hcwU[t] - isolated_hcw[t], 0)
 }

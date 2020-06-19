@@ -228,7 +228,8 @@ model{
     // ========================================================================= //
     // HCWs
     ind = max(t-S, 1);
-    prob_inc = dot_product(I_hcwU[1:(t-1)], rev_inc_distr[1:(t-1)]); 
+    prob_inc = sum(inc_distr[ind:(t-1)]);
+    //prob_inc = dot_product(I_hcwU[1:(t-1)], rev_inc_distr[1:(t-1)]); 
     hcw_symp_gamma_rate = 1.0/(1.0-prob_inc);
     hcw_symp_gamma_shape = fmax(Prev_hcwU[t-1]*prob_inc*hcw_symp_gamma_rate, eps);
     sum_symp_hcw[t] ~ gamma(hcw_symp_gamma_shape,hcw_symp_gamma_rate);
@@ -241,7 +242,8 @@ model{
     discharge_dead_pat[t] ~ gamma(p_d_gamma_shape,p_d_gamma_rate);
     // Unknown infected patients that develop symptoms
     temp_prev_pU = fmax(Prev_pU[t-1] - discharge_dead_pat[t], eps);
-    prob_symp = (1-delta[t])*dot_product(I_pU[1:(t-1)], rev_inc_distr[1:(t-1)]);
+    prob_symp = (1-delta[t])*prob_inc; 
+    //prob_symp = (1-delta[t])*dot_product(I_pU[1:(t-1)], rev_inc_distr[1:(t-1)]);
     p_symp_gamma_rate = (pDis + prob_symp*(1-prob_symp))/((1-prob_symp)*(pDis + Prev_pU[t-1]*prob_symp*(1-prob_symp))); 
     p_symp_gamma_shape = fmax(temp_prev_pU*prob_symp*p_symp_gamma_rate, eps);
     sum_symp_pat[t] ~ gamma(p_symp_gamma_shape,p_symp_gamma_rate);
