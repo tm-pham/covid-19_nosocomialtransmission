@@ -243,7 +243,7 @@ model{
     temp_prev_pU = fmax(Prev_pU[t-1] - discharge_dead_pat[t], eps);
     prob_symp = (1-delta[t])*dot_product(I_pU[1:(t-1)], rev_inc_distr[1:(t-1)]);
     p_symp_gamma_rate = (pDis + prob_symp*(1-prob_symp))/((1-prob_symp)*(pDis + Prev_pU[t-1]*prob_symp*(1-prob_symp))); 
-    p_symp_gamma_shape = famx(temp_prev_pU*prob_symp*p_symp_gamma_rate, eps);
+    p_symp_gamma_shape = fmax(temp_prev_pU*prob_symp*p_symp_gamma_rate, eps);
     sum_symp_pat[t] ~ gamma(p_symp_gamma_shape,p_symp_gamma_rate);
     // Remaining number of unknonwn unisolated patient at time t (prevalence)
     Prev_pU[t] = fmax(temp_prev_pU - sum_symp_pat[t] + I_pU[t], eps);
